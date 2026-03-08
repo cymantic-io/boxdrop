@@ -49,6 +49,9 @@ garagesale:
     endpoint: ${S3_ENDPOINT:http://localhost:9000}
     access-key: ${S3_ACCESS_KEY:minioadmin}
     secret-key: ${S3_SECRET_KEY:minioadmin}
+  rate-limit:
+    max-requests: ${RATE_LIMIT_MAX:5000}
+    window-seconds: ${RATE_LIMIT_WINDOW:60}
   stripe:
     api-key: ${STRIPE_API_KEY:sk_test_placeholder}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}

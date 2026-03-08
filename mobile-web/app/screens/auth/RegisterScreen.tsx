@@ -68,6 +68,7 @@ export function RegisterScreen({ navigation }: Props) {
           rules={{ required: 'Display name is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="register-name"
               style={[styles.input, errors.displayName && styles.inputError]}
               placeholder="Display Name"
               placeholderTextColor="#999"
@@ -94,6 +95,7 @@ export function RegisterScreen({ navigation }: Props) {
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="register-email"
               style={[styles.input, errors.email && styles.inputError]}
               placeholder="Email"
               placeholderTextColor="#999"
@@ -106,7 +108,7 @@ export function RegisterScreen({ navigation }: Props) {
             />
           )}
         />
-        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+        {errors.email && <Text testID="error-email" style={styles.errorText}>{errors.email.message}</Text>}
 
         <Controller
           control={control}
@@ -120,6 +122,7 @@ export function RegisterScreen({ navigation }: Props) {
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="register-password"
               style={[styles.input, errors.password && styles.inputError]}
               placeholder="Password"
               placeholderTextColor="#999"
@@ -130,7 +133,7 @@ export function RegisterScreen({ navigation }: Props) {
             />
           )}
         />
-        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+        {errors.password && <Text testID="error-password" style={styles.errorText}>{errors.password.message}</Text>}
 
         <Controller
           control={control}
@@ -141,6 +144,7 @@ export function RegisterScreen({ navigation }: Props) {
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="register-confirm-password"
               style={[styles.input, errors.confirmPassword && styles.inputError]}
               placeholder="Confirm Password"
               placeholderTextColor="#999"
@@ -156,6 +160,7 @@ export function RegisterScreen({ navigation }: Props) {
         )}
 
         <TouchableOpacity
+          testID="register-submit"
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}

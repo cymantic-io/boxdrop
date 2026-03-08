@@ -1,11 +1,19 @@
 import { useLocationStore } from '../../app/stores/useLocationStore';
 
+jest.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  getCurrentPositionAsync: jest.fn().mockResolvedValue({
+    coords: { latitude: 40.7128, longitude: -74.006 },
+  }),
+}));
+
 describe('useLocationStore', () => {
   beforeEach(() => {
     useLocationStore.setState({
       latitude: null,
       longitude: null,
-      address: null,
+      errorMsg: null,
+      isLoading: false,
     });
   });
 
@@ -13,37 +21,40 @@ describe('useLocationStore', () => {
     const state = useLocationStore.getState();
     expect(state.latitude).toBeNull();
     expect(state.longitude).toBeNull();
-    expect(state.address).toBeNull();
   });
 
-  it('setLocation updates coordinates', () => {
-    const { setLocation } = useLocationStore.getState();
-    setLocation(40.7128, -74.006);
+  it('requestLocation updates coordinates', async () => {
+    const { requestLocation } = useLocationStore.getState();
+    await requestLocation();
 
     const state = useLocationStore.getState();
     expect(state.latitude).toBe(40.7128);
     expect(state.longitude).toBe(-74.006);
-    expect(state.address).toBeNull();
+    expect(state.isLoading).toBe(false);
   });
 
-  it('setLocation updates coordinates and address', () => {
-    const { setLocation } = useLocationStore.getState();
-    setLocation(40.7128, -74.006, '123 Main St');
+  it('requestLocation sets error when permission denied', async () => {
+    const Location = require('expo-location');
+    Location.requestForegroundPermissionsAsync.mockResolvedValueOnce({ status: 'denied' });
+
+    const { requestLocation } = useLocationStore.getState();
+    await requestLocation();
 
     const state = useLocationStore.getState();
-    expect(state.latitude).toBe(40.7128);
-    expect(state.longitude).toBe(-74.006);
-    expect(state.address).toBe('123 Main St');
+    expect(state.latitude).toBeNull();
+    expect(state.longitude).toBeNull();
+    expect(state.errorMsg).toBe('Location permission denied');
   });
 
-  it('setLocation without address resets address to null', () => {
-    const { setLocation } = useLocationStore.getState();
-    setLocation(40.7128, -74.006, '123 Main St');
-    setLocation(41.0, -75.0);
+  it('requestLocation sets error on failure', async () => {
+    const Location = require('expo-location');
+    Location.getCurrentPositionAsync.mockRejectedValueOnce(new Error('fail'));
+
+    const { requestLocation } = useLocationStore.getState();
+    await requestLocation();
 
     const state = useLocationStore.getState();
-    expect(state.latitude).toBe(41.0);
-    expect(state.longitude).toBe(-75.0);
-    expect(state.address).toBeNull();
+    expect(state.errorMsg).toBe('Failed to get location');
+    expect(state.isLoading).toBe(false);
   });
 });

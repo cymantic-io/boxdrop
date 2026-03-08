@@ -1,6 +1,7 @@
 package com.garagesale.security
 
 import io.lettuce.core.api.StatefulRedisConnection
+import io.micronaut.context.annotation.Value
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -14,7 +15,9 @@ import reactor.core.publisher.Mono
 @Filter("/api/**")
 @io.micronaut.core.annotation.Order(1)
 class RateLimitFilter(
-    private val redisConnection: StatefulRedisConnection<String, String>
+    private val redisConnection: StatefulRedisConnection<String, String>,
+    @Value("\${garagesale.rate-limit.max-requests:100}") private val maxRequests: Long,
+    @Value("\${garagesale.rate-limit.window-seconds:60}") private val windowSeconds: Long
 ) : HttpServerFilter {
 
     override fun doFilter(request: HttpRequest<*>, chain: ServerFilterChain): Publisher<MutableHttpResponse<*>> {
@@ -23,9 +26,9 @@ class RateLimitFilter(
         val commands = redisConnection.sync()
         val current = commands.incr(key)
         if (current == 1L) {
-            commands.expire(key, 60L)
+            commands.expire(key, windowSeconds)
         }
-        return if (current > 100) {
+        return if (current > maxRequests) {
             Mono.just(HttpResponse.status<Any>(HttpStatus.TOO_MANY_REQUESTS))
         } else {
             chain.proceed(request)

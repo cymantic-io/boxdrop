@@ -43,11 +43,12 @@ export function HomeScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="home-screen">
       <SearchBar
         value={searchText}
         onChangeText={setSearchText}
         placeholder="Search sales and listings..."
+        testID="search-input"
       />
       <FlatList
         data={filteredSales}
@@ -65,6 +66,7 @@ export function HomeScreen({ navigation }: Props) {
         ListEmptyComponent={
           <EmptyState
             message={searchText.trim() ? 'No results found' : 'No sales nearby'}
+            testID={searchText.trim() ? 'search-empty' : undefined}
           />
         }
       />

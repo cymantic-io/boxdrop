@@ -65,6 +65,7 @@ export function LoginScreen({ navigation }: Props) {
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="login-email"
               style={[styles.input, errors.email && styles.inputError]}
               placeholder="Email"
               placeholderTextColor="#999"
@@ -85,6 +86,7 @@ export function LoginScreen({ navigation }: Props) {
           rules={{ required: 'Password is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              testID="login-password"
               style={[styles.input, errors.password && styles.inputError]}
               placeholder="Password"
               placeholderTextColor="#999"
@@ -98,6 +100,7 @@ export function LoginScreen({ navigation }: Props) {
         {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
         <TouchableOpacity
+          testID="login-submit"
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}

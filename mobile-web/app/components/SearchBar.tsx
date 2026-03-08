@@ -5,12 +5,14 @@ interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  testID?: string;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   placeholder = 'Search...',
+  testID,
 }) => {
   const inputRef = useRef<TextInput>(null);
 
@@ -24,6 +26,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       <Text style={styles.icon}>🔍</Text>
       <TextInput
         ref={inputRef}
+        testID={testID}
         style={styles.input}
         value={value}
         onChangeText={onChangeText}

@@ -4,6 +4,12 @@ jest.mock('../../app/services/api', () => ({
   setAuthToken: jest.fn(),
 }));
 
+jest.mock('expo-secure-store', () => ({
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { setAuthToken } from '../../app/services/api';
 
 describe('useAuthStore', () => {
@@ -11,7 +17,10 @@ describe('useAuthStore', () => {
     useAuthStore.setState({
       user: null,
       accessToken: null,
+      refreshToken: null,
+      userId: null,
       isAuthenticated: false,
+      isLoading: false,
     });
     jest.clearAllMocks();
   });
@@ -23,39 +32,29 @@ describe('useAuthStore', () => {
     expect(state.user).toBeNull();
   });
 
-  it('setAuth updates state and marks authenticated', () => {
-    const { setAuth } = useAuthStore.getState();
-    const mockUser = {
-      id: 'user789',
-      email: 'test@example.com',
-      createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    };
-
-    setAuth(mockUser, 'access123');
+  it('setTokens updates state and marks authenticated', () => {
+    const { setTokens } = useAuthStore.getState();
+    setTokens('access123', 'refresh456', 'user789');
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBe('access123');
-    expect(state.user).toEqual(mockUser);
+    expect(state.refreshToken).toBe('refresh456');
+    expect(state.userId).toBe('user789');
     expect(state.isAuthenticated).toBe(true);
     expect(setAuthToken).toHaveBeenCalledWith('access123');
   });
 
-  it('logout clears state', () => {
-    const { setAuth, logout } = useAuthStore.getState();
-    const mockUser = {
-      id: 'user789',
-      email: 'test@example.com',
-      createdAt: '2025-01-01T00:00:00Z',
-      updatedAt: '2025-01-01T00:00:00Z',
-    };
-    setAuth(mockUser, 'access123');
+  it('logout clears state', async () => {
+    const { setTokens, logout } = useAuthStore.getState();
+    setTokens('access123', 'refresh456', 'user789');
 
-    logout();
+    await logout();
 
     const state = useAuthStore.getState();
     expect(state.isAuthenticated).toBe(false);
     expect(state.accessToken).toBeNull();
+    expect(state.refreshToken).toBeNull();
+    expect(state.userId).toBeNull();
     expect(state.user).toBeNull();
     expect(setAuthToken).toHaveBeenCalledWith(null);
   });

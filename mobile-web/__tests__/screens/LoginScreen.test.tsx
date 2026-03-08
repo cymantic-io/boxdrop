@@ -14,7 +14,7 @@ jest.mock('../../app/stores/useAuthStore', () => ({
   },
 }));
 
-import LoginScreen from '../../app/screens/auth/LoginScreen';
+import { LoginScreen } from '../../app/screens/auth/LoginScreen';
 
 describe('LoginScreen', () => {
   const defaultProps: any = {

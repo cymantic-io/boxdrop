@@ -39,7 +39,7 @@ jest.mock('../../app/hooks', () => ({
   }),
 }));
 
-import HomeScreen from '../../app/screens/home/HomeScreen';
+import { HomeScreen } from '../../app/screens/home/HomeScreen';
 
 describe('HomeScreen', () => {
   const queryClient = new QueryClient({

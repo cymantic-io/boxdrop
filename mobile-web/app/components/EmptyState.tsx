@@ -4,10 +4,11 @@ import { StyleSheet, Text, View } from 'react-native';
 interface EmptyStateProps {
   message: string;
   icon?: string;
+  testID?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ message, icon = '📦' }) => (
-  <View style={styles.container}>
+export const EmptyState: React.FC<EmptyStateProps> = ({ message, icon = '📦', testID }) => (
+  <View style={styles.container} testID={testID}>
     <Text style={styles.icon}>{icon}</Text>
     <Text style={styles.message}>{message}</Text>
   </View>

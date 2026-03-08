@@ -6,6 +6,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './app/navigation/AppNavigator';
 import { useAuthStore } from './app/stores/useAuthStore';
 
+const linking = {
+  prefixes: ['http://localhost:8081'],
+  config: {
+    screens: {
+      Auth: {
+        screens: {
+          Login: 'login',
+          Register: 'register',
+        },
+      },
+      Main: {
+        screens: {
+          HomeTab: {
+            screens: {
+              Home: '',
+              SaleDetail: 'sale/:saleId',
+              ListingDetail: 'listing/:listingId',
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,7 +50,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <StatusBar style="light" />
           <AppNavigator />
         </NavigationContainer>
