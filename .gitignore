@@ -18,6 +18,7 @@ backend/secrets/
 
 # Frontend
 mobile-web/node_modules/
+tests/e2e/node_modules/
 mobile-web/.expo/
 mobile-web/dist/
 mobile-web/web-build/
