@@ -67,7 +67,9 @@ jobs:
           node-version: 20
       - run: npm ci
         working-directory: mobile-web
+      - run: npm ci
+        working-directory: tests/e2e
       - run: npx playwright install --with-deps
-        working-directory: mobile-web
+        working-directory: tests/e2e
       - run: npx playwright test
-        working-directory: mobile-web
+        working-directory: tests/e2e
