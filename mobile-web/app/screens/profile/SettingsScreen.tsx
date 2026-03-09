@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { colors } from '../../theme';
 import type { ProfileStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Settings'>;
@@ -32,6 +33,14 @@ export function SettingsScreen({ navigation }: Props) {
         <Text style={styles.sectionHeader}>Account</Text>
         <View style={styles.card}>
           <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('ChangePassword')}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.menuLabel}>Change Password</Text>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
             activeOpacity={0.6}
@@ -42,7 +51,7 @@ export function SettingsScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.versionText}>Garage Sale v1.0.0</Text>
+        <Text style={styles.versionText}>BoxDrop v1.0.0</Text>
       </View>
     </View>
   );
@@ -51,7 +60,7 @@ export function SettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     padding: 16,
   },
   section: {
@@ -70,6 +79,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  menuLabel: {
+    fontSize: 16,
+    color: '#333',
+  },
+  chevron: {
+    fontSize: 22,
+    color: '#CCC',
+    fontWeight: '300',
   },
   logoutButton: {
     paddingHorizontal: 20,

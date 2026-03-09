@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Chip } from 'react-native-paper';
 import { SaleStatus } from '../types';
 
 const STATUS_COLORS: Record<SaleStatus, { bg: string; text: string }> = {
-  DRAFT: { bg: '#fff3e0', text: '#e65100' },
-  ACTIVE: { bg: '#e8f5e9', text: '#2e7d32' },
-  ENDED: { bg: '#f5f5f5', text: '#757575' },
-  CANCELLED: { bg: '#ffebee', text: '#c62828' },
+  DRAFT: { bg: '#FFF5E6', text: '#F4A261' },
+  ACTIVE: { bg: '#ECFDF3', text: '#12B76A' },
+  ENDED: { bg: '#F7F7F8', text: '#667085' },
+  CANCELLED: { bg: '#FEF3F2', text: '#F04438' },
 };
 
 interface StatusBadgeProps {
@@ -14,19 +15,21 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const colors = STATUS_COLORS[status];
+  const statusColors = STATUS_COLORS[status];
   return (
-    <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-      <Text style={[styles.text, { color: colors.text }]}>{status}</Text>
-    </View>
+    <Chip
+      compact
+      style={[styles.chip, { backgroundColor: statusColors.bg }]}
+      textStyle={[styles.text, { color: statusColors.text }]}
+    >
+      {status}
+    </Chip>
   );
 };
 
 const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  chip: {
+    borderRadius: 16,
   },
   text: {
     fontSize: 11,

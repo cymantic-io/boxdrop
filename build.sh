@@ -7,7 +7,7 @@ cd "$ROOT_DIR"
 echo "=== 1/5 Starting Docker infrastructure ==="
 docker compose up -d
 echo "Waiting for PostgreSQL..."
-until docker exec garagesale-db-1 pg_isready -U postgres -q 2>/dev/null; do sleep 1; done
+until docker exec boxdrop-db-1 pg_isready -U postgres -q 2>/dev/null; do sleep 1; done
 echo "Docker services ready."
 
 echo ""

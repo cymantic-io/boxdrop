@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORIES } from '../types';
+import { colors } from '../theme';
 
 interface CategoryPickerProps {
   selected: string | null;
@@ -57,8 +58,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   chipSelected: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
     fontSize: 13,

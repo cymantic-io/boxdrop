@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useListings, useCreateListing } from '../../hooks';
+import { colors } from '../../theme';
 import { ListingCard, DraftItemForm, EmptyState } from '../../components';
 import type { CreateSaleStackParamList, CreateListingRequest } from '../../types';
 
@@ -59,10 +60,10 @@ export function AddListingsScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   heading: { fontSize: 17, fontWeight: '600', color: '#1a1a1a' },
-  doneButton: { backgroundColor: '#2196F3', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8 },
+  doneButton: { backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8 },
   doneText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   listContent: { paddingBottom: 16 },
   row: { paddingHorizontal: 12 },

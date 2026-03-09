@@ -4,4 +4,4 @@ micronaut:
       configurations:
         web:
           allowed-origins:
-            - https://garagesale.example.com
+            - https://boxdrop.me

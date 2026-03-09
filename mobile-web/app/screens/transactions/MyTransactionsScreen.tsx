@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTransactions } from '../../hooks';
+import { colors } from '../../theme';
 import type { Transaction, ProfileStackParamList } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
-  CLAIMED: '#2196F3',
+  CLAIMED: colors.primary,
   PAYMENT_PENDING: '#F59E0B',
   PAID: '#16A34A',
   PICKUP_CONFIRMED: '#0D9488',
@@ -78,7 +79,7 @@ export function MyTransactionsScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -115,7 +116,7 @@ export function MyTransactionsScreen({ navigation }: Props) {
           </View>
         }
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor="#2196F3" />
+          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
         }
       />
     </View>
@@ -125,11 +126,11 @@ export function MyTransactionsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     fontFamily: 'monospace',
-    color: '#2196F3',
+    color: colors.primary,
     letterSpacing: 2,
   },
   emptyContainer: {
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 24,

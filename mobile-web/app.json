@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Garage Sale",
-    "slug": "garage-sale",
-    "scheme": "garagesale",
+    "name": "BoxDrop",
+    "slug": "boxdrop",
+    "scheme": "boxdrop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FAFAF9"
     },
     "ios": {
       "supportsTablet": true
@@ -17,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FAFAF9"
       }
     },
     "web": {
@@ -26,7 +26,8 @@
     "plugins": [
       "expo-camera",
       "expo-location",
-      "expo-asset"
+      "expo-asset",
+      "expo-font"
     ],
     "extra": {
       "apiUrl": "http://localhost:8080"

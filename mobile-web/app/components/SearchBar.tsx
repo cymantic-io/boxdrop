@@ -1,5 +1,7 @@
-import React, { useCallback, useRef } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, Text } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet } from 'react-native';
+import { Searchbar } from 'react-native-paper';
+import { colors } from '../theme';
 
 interface SearchBarProps {
   value: string;
@@ -14,69 +16,35 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Search...',
   testID,
 }) => {
-  const inputRef = useRef<TextInput>(null);
-
   const handleClear = useCallback(() => {
     onChangeText('');
-    inputRef.current?.focus();
   }, [onChangeText]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.icon}>🔍</Text>
-      <TextInput
-        ref={inputRef}
-        testID={testID}
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="search"
-      />
-      {value.length > 0 && (
-        <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-          <Text style={styles.clearText}>✕</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <Searchbar
+      testID={testID}
+      placeholder={placeholder}
+      onChangeText={onChangeText}
+      onClearIconPress={handleClear}
+      value={value}
+      style={styles.searchbar}
+      inputStyle={styles.input}
+      mode="bar"
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+  searchbar: {
     marginHorizontal: 16,
     marginVertical: 10,
-    paddingHorizontal: 12,
-    height: 44,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  icon: {
-    fontSize: 16,
-    marginRight: 8,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   input: {
-    flex: 1,
     fontSize: 15,
-    color: '#1a1a1a',
-    padding: 0,
-  },
-  clearButton: {
-    padding: 4,
-    marginLeft: 4,
-  },
-  clearText: {
-    fontSize: 14,
-    color: '#999',
   },
 });

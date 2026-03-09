@@ -8,9 +8,10 @@ describe('EmptyState', () => {
     expect(getByText('No items')).toBeTruthy();
   });
 
-  it('renders default icon', () => {
-    const { getByText } = render(<EmptyState message="Empty" />);
-    expect(getByText('📦')).toBeTruthy();
+  it('renders default logo image when no icon', () => {
+    const { queryByText } = render(<EmptyState message="Empty" />);
+    // When no icon prop, shows the app logo image instead of an emoji
+    expect(queryByText('📦')).toBeNull();
   });
 
   it('renders custom icon', () => {

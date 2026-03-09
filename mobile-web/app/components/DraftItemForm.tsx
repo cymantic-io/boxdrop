@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { CreateListingRequest, ListingCondition } from '../types';
+import { colors } from '../theme';
 
 interface DraftItemFormProps {
   onSubmit: (data: CreateListingRequest) => void;
@@ -38,7 +33,7 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Add Item</Text>
+      <Text variant="titleMedium" style={styles.heading}>Add Item</Text>
 
       <Controller
         control={control}
@@ -46,14 +41,17 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
         rules={{ required: 'Title is required' }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            style={[styles.input, errors.title && styles.inputError]}
-            placeholder="Item title *"
+            mode="outlined"
+            label="Item title *"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
+            error={!!errors.title}
+            style={styles.input}
           />
         )}
       />
+      <HelperText type="error" visible={!!errors.title}>{errors.title?.message}</HelperText>
 
       <Controller
         control={control}
@@ -61,11 +59,13 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
         rules={{ required: 'Category is required' }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            style={[styles.input, errors.category && styles.inputError]}
-            placeholder="Category *"
+            mode="outlined"
+            label="Category *"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
+            error={!!errors.category}
+            style={styles.input}
           />
         )}
       />
@@ -77,12 +77,14 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
           rules={{ required: 'Price required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, styles.halfInput, errors.startingPrice && styles.inputError]}
-              placeholder="Starting price *"
+              mode="outlined"
+              label="Starting price *"
               value={value ? String(value) : ''}
               onChangeText={onChange}
               onBlur={onBlur}
               keyboardType="decimal-pad"
+              error={!!errors.startingPrice}
+              style={[styles.input, styles.halfInput]}
             />
           )}
         />
@@ -91,12 +93,13 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
           name="minimumPrice"
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, styles.halfInput]}
-              placeholder="Min price"
+              mode="outlined"
+              label="Min price"
               value={value ? String(value) : ''}
               onChangeText={onChange}
               onBlur={onBlur}
               keyboardType="decimal-pad"
+              style={[styles.input, styles.halfInput]}
             />
           )}
         />
@@ -107,66 +110,53 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
         name="description"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            style={[styles.input, styles.multiline]}
-            placeholder="Description (optional)"
+            mode="outlined"
+            label="Description (optional)"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
             multiline
             numberOfLines={2}
+            style={[styles.input, styles.multiline]}
           />
         )}
       />
 
-      <TouchableOpacity
-        style={styles.addButton}
+      <Button
+        mode="contained"
         onPress={handleSubmit(handleFormSubmit)}
+        loading={loading}
         disabled={loading}
-        activeOpacity={0.8}
+        style={styles.addButton}
+        contentStyle={styles.addButtonContent}
+        icon="plus"
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.addButtonText}>+ Add Item</Text>
-        )}
-      </TouchableOpacity>
+        Add Item
+      </Button>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
     elevation: 3,
   },
   heading: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    color: colors.textPrimary,
     marginBottom: 12,
+    fontWeight: '700',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    marginBottom: 10,
-    backgroundColor: '#fafafa',
-  },
-  inputError: {
-    borderColor: '#c62828',
+    marginBottom: 4,
+    backgroundColor: colors.surface,
   },
   multiline: {
     minHeight: 60,
-    textAlignVertical: 'top',
   },
   row: {
     flexDirection: 'row',
@@ -176,15 +166,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addButton: {
-    backgroundColor: '#2e7d32',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 4,
+    marginTop: 8,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
   },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
+  addButtonContent: {
+    height: 48,
   },
 });

@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMySales } from '../../hooks';
+import { colors } from '../../theme';
 import { SaleCard, EmptyState, LoadingScreen } from '../../components';
 import type { ProfileStackParamList } from '../../types';
 
@@ -43,6 +44,6 @@ export function MySalesScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: colors.background },
   list: { flexGrow: 1, padding: 16, paddingBottom: 24 },
 });

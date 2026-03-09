@@ -28,6 +28,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   avatarUrl: string | null;
+  address: string | null;
   trustScore: number;
   reviewCount: number;
   avgRating: number;
@@ -77,6 +78,7 @@ export interface Listing {
 export interface Transaction {
   id: string;
   listingId: string;
+  listingTitle?: string;
   buyerId: string;
   sellerId: string;
   amount: number;
@@ -95,7 +97,10 @@ export interface MessageThread {
   buyerId: string;
   sellerId: string;
   listingId: string;
+  listingTitle?: string;
+  otherUserName?: string;
   lastMessage: string | null;
+  lastMessageAt?: string;
   unreadCount: number;
   createdAt: string;
 }
@@ -195,6 +200,12 @@ export interface UpdateListingRequest {
 export interface UpdateProfileRequest {
   displayName?: string;
   avatarUrl?: string;
+  address?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface ClaimListingRequest {
@@ -296,6 +307,8 @@ export type ProfileStackParamList = {
   MyTransactions: undefined;
   Inbox: undefined;
   Chat: { threadId: string; listingTitle?: string };
+  EditProfile: undefined;
+  ChangePassword: undefined;
   Settings: undefined;
   SaleDetail: { saleId: string };
   ListingDetail: { listingId: string };

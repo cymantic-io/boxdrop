@@ -6,7 +6,7 @@ plugins {
     id("org.owasp.dependencycheck") version "9.0.9"
 }
 
-group = "com.garagesale"
+group = "com.boxdrop"
 version = "0.1"
 
 repositories {
@@ -19,7 +19,7 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("com.garagesale.*")
+        annotations("com.boxdrop.*")
     }
 }
 
@@ -59,7 +59,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.garagesale.ApplicationKt")
+    mainClass.set("com.boxdrop.ApplicationKt")
 }
 
 tasks.test {

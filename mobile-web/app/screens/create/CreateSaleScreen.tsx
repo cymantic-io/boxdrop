@@ -5,16 +5,15 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
+import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCreateSale } from '../../hooks';
+import { colors } from '../../theme';
 import { useLocationStore } from '../../stores/useLocationStore';
+import { WebContentWrapper } from '../../components/WebContentWrapper';
 import type { CreateSaleStackParamList, CreateSaleRequest } from '../../types';
 
 type Props = NativeStackScreenProps<CreateSaleStackParamList, 'CreateSale'>;
@@ -57,32 +56,38 @@ export function CreateSaleScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <WebContentWrapper>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.heading}>Create a Garage Sale</Text>
+        <Text variant="headlineSmall" style={styles.heading}>Create a Sale</Text>
 
-        <Text style={styles.label}>Title *</Text>
+        <Text variant="labelLarge" style={styles.label}>Title *</Text>
         <Controller
           control={control}
           name="title"
           rules={{ required: 'Title is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, errors.title && styles.inputError]}
+              mode="outlined"
+              label="Title"
+              style={styles.input}
               placeholder="e.g., Moving Sale - Everything Must Go!"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
+              error={!!errors.title}
             />
           )}
         />
-        {errors.title && <Text style={styles.errorText}>{errors.title.message}</Text>}
+        {errors.title && <HelperText type="error">{errors.title.message}</HelperText>}
 
-        <Text style={styles.label}>Description</Text>
+        <Text variant="labelLarge" style={styles.label}>Description</Text>
         <Controller
           control={control}
           name="description"
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
+              mode="outlined"
+              label="Description"
               style={[styles.input, styles.multiline]}
               placeholder="Describe your sale..."
               value={value}
@@ -94,90 +99,98 @@ export function CreateSaleScreen({ navigation }: Props) {
           )}
         />
 
-        <Text style={styles.label}>Address *</Text>
+        <Text variant="labelLarge" style={styles.label}>Address *</Text>
         <Controller
           control={control}
           name="address"
           rules={{ required: 'Address is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, errors.address && styles.inputError]}
+              mode="outlined"
+              label="Address"
+              style={styles.input}
               placeholder="123 Main St, City, State"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
+              error={!!errors.address}
             />
           )}
         />
-        {errors.address && <Text style={styles.errorText}>{errors.address.message}</Text>}
+        {errors.address && <HelperText type="error">{errors.address.message}</HelperText>}
 
         {latitude && longitude && (
-          <Text style={styles.locationNote}>
+          <Text variant="bodySmall" style={styles.locationNote}>
             📍 Using your current location ({latitude.toFixed(4)}, {longitude.toFixed(4)})
           </Text>
         )}
 
-        <Text style={styles.label}>Start Date/Time (ISO format) *</Text>
+        <Text variant="labelLarge" style={styles.label}>Start Date/Time (ISO format) *</Text>
         <Controller
           control={control}
           name="startsAt"
           rules={{ required: 'Start date is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, errors.startsAt && styles.inputError]}
+              mode="outlined"
+              label="Start Date/Time"
+              style={styles.input}
               placeholder="2025-06-15T09:00:00"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
+              error={!!errors.startsAt}
             />
           )}
         />
-        {errors.startsAt && <Text style={styles.errorText}>{errors.startsAt.message}</Text>}
+        {errors.startsAt && <HelperText type="error">{errors.startsAt.message}</HelperText>}
 
-        <Text style={styles.label}>End Date/Time (ISO format) *</Text>
+        <Text variant="labelLarge" style={styles.label}>End Date/Time (ISO format) *</Text>
         <Controller
           control={control}
           name="endsAt"
           rules={{ required: 'End date is required' }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[styles.input, errors.endsAt && styles.inputError]}
+              mode="outlined"
+              label="End Date/Time"
+              style={styles.input}
               placeholder="2025-06-15T17:00:00"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
+              error={!!errors.endsAt}
             />
           )}
         />
-        {errors.endsAt && <Text style={styles.errorText}>{errors.endsAt.message}</Text>}
+        {errors.endsAt && <HelperText type="error">{errors.endsAt.message}</HelperText>}
 
-        <TouchableOpacity
-          style={[styles.submitButton, isPending && styles.buttonDisabled]}
+        <Button
+          mode="contained"
           onPress={handleSubmit(onSubmit)}
           disabled={isPending}
+          loading={isPending}
+          style={styles.submitButton}
+          contentStyle={styles.submitButtonContent}
+          labelStyle={styles.submitText}
         >
-          {isPending ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Create Sale & Add Items</Text>
-          )}
-        </TouchableOpacity>
+          Create Sale & Add Items
+        </Button>
       </ScrollView>
+      </WebContentWrapper>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  heading: { fontSize: 22, fontWeight: '700', color: '#1a1a1a', marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  inputError: { borderColor: '#e53935' },
-  multiline: { minHeight: 80, textAlignVertical: 'top' },
-  errorText: { color: '#e53935', fontSize: 13, marginTop: 4 },
-  locationNote: { fontSize: 13, color: '#4CAF50', marginTop: 8 },
-  submitButton: { backgroundColor: '#2196F3', borderRadius: 8, paddingVertical: 14, alignItems: 'center', marginTop: 24 },
-  buttonDisabled: { opacity: 0.6 },
+  heading: { color: '#1D2939', marginBottom: 20, fontWeight: '700' },
+  label: { color: '#667085', marginBottom: 6, marginTop: 12 },
+  input: { marginBottom: 4, backgroundColor: colors.surface },
+  multiline: { minHeight: 80 },
+  locationNote: { color: '#12B76A', marginTop: 8 },
+  submitButton: { backgroundColor: '#2A9D8F', borderRadius: 12, marginTop: 24 },
+  submitButtonContent: { paddingVertical: 6 },
   submitText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

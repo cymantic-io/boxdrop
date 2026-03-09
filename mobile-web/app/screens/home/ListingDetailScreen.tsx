@@ -3,13 +3,15 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   ActivityIndicator,
 } from 'react-native';
+import { Chip, Text as PaperText, Button as PaperButton } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useListing, useSaveListing, useUnsaveListing } from '../../hooks';
+import { colors } from '../../theme';
 import { PhotoCarousel, ClaimButton } from '../../components';
+import { WebContentWrapper } from '../../components/WebContentWrapper';
 import type { HomeStackParamList } from '../../types';
 import { useAuthStore } from '../../stores/useAuthStore';
 
@@ -17,9 +19,9 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'ListingDetail'>;
 
 function getPriceColor(current: number, starting: number): string {
   const ratio = current / starting;
-  if (ratio >= 0.75) return '#4CAF50';
-  if (ratio >= 0.4) return '#FF9800';
-  return '#F44336';
+  if (ratio >= 0.75) return '#12B76A';
+  if (ratio >= 0.4) return '#F4A261';
+  return '#E76F51';
 }
 
 export function ListingDetailScreen({ route, navigation }: Props) {
@@ -32,7 +34,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -50,11 +52,12 @@ export function ListingDetailScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <WebContentWrapper>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <PhotoCarousel images={listing.images ?? []} />
 
         <View style={styles.content}>
-          <Text style={styles.title}>{listing.title}</Text>
+          <PaperText variant="headlineSmall" style={styles.title}>{listing.title}</PaperText>
 
           <View style={styles.priceSection}>
             <Text style={[styles.currentPrice, { color: priceColor }]}>
@@ -74,17 +77,17 @@ export function ListingDetailScreen({ route, navigation }: Props) {
           )}
 
           <View style={styles.metaRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{listing.category}</Text>
-            </View>
+            <Chip compact style={styles.badge} textStyle={styles.badgeText}>
+              {listing.category}
+            </Chip>
             {listing.condition && (
-              <View style={[styles.badge, styles.conditionBadge]}>
-                <Text style={styles.badgeText}>{listing.condition.replace('_', ' ')}</Text>
-              </View>
+              <Chip compact style={[styles.badge, styles.conditionBadge]} textStyle={styles.badgeText}>
+                {listing.condition.replace('_', ' ')}
+              </Chip>
             )}
-            <View style={[styles.badge, styles.statusBadge]}>
-              <Text style={styles.badgeText}>{listing.status}</Text>
-            </View>
+            <Chip compact style={[styles.badge, styles.statusBadge]} textStyle={styles.badgeText}>
+              {listing.status}
+            </Chip>
           </View>
 
           {listing.description ? (
@@ -92,12 +95,15 @@ export function ListingDetailScreen({ route, navigation }: Props) {
           ) : null}
 
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={styles.saveButton}
+            <PaperButton
+              mode="outlined"
+              icon="heart"
               onPress={() => save(listing.id)}
+              style={styles.saveButton}
+              textColor="#E76F51"
             >
-              <Text style={styles.saveText}>♥ Save</Text>
-            </TouchableOpacity>
+              Save
+            </PaperButton>
           </View>
         </View>
       </ScrollView>
@@ -115,29 +121,29 @@ export function ListingDetailScreen({ route, navigation }: Props) {
           />
         </View>
       )}
+      </WebContentWrapper>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5F5' },
-  errorText: { fontSize: 16, color: '#DC2626' },
+  container: { flex: 1, backgroundColor: colors.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
+  errorText: { fontSize: 16, color: '#F04438' },
   scrollContent: { paddingBottom: 100 },
   content: { padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  title: { color: '#1D2939', fontWeight: '700', marginBottom: 8 },
   priceSection: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 4 },
   currentPrice: { fontSize: 28, fontWeight: '700' },
-  originalPrice: { fontSize: 16, color: '#999', textDecorationLine: 'line-through' },
-  minPrice: { fontSize: 13, color: '#888', marginBottom: 12 },
+  originalPrice: { fontSize: 16, color: '#98A2B3', textDecorationLine: 'line-through' },
+  minPrice: { fontSize: 13, color: '#98A2B3', marginBottom: 12 },
   metaRow: { flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
-  badge: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  conditionBadge: { backgroundColor: '#FFF3E0' },
-  statusBadge: { backgroundColor: '#E8F5E9' },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#555' },
-  description: { fontSize: 15, color: '#555', lineHeight: 22, marginBottom: 16 },
+  badge: { backgroundColor: '#E0F5F1' },
+  conditionBadge: { backgroundColor: '#FFF5E6' },
+  statusBadge: { backgroundColor: '#ECFDF3' },
+  badgeText: { fontSize: 12, fontWeight: '600', color: '#1D2939' },
+  description: { fontSize: 15, color: '#667085', lineHeight: 22, marginBottom: 16 },
   actions: { flexDirection: 'row', gap: 12 },
-  saveButton: { borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  saveText: { fontSize: 15, color: '#F44336', fontWeight: '600' },
-  claimContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E0E0E0' },
+  saveButton: { borderColor: '#E4E7EC', borderRadius: 12 },
+  claimContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E4E7EC' },
 });

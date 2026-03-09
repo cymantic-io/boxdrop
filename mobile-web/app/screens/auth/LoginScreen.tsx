@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
+  Image,
 } from 'react-native';
+import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
@@ -51,7 +49,8 @@ export function LoginScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={styles.logo}>🏷️ Garage Sale</Text>
+        <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+        <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
 
         <Controller
           control={control}
@@ -66,19 +65,23 @@ export function LoginScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="login-email"
-              style={[styles.input, errors.email && styles.inputError]}
-              placeholder="Email"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Email"
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.email}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+        <HelperText type="error" visible={!!errors.email}>{errors.email?.message}</HelperText>
 
         <Controller
           control={control}
@@ -87,36 +90,42 @@ export function LoginScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="login-password"
-              style={[styles.input, errors.password && styles.inputError]}
-              placeholder="Password"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Password"
               secureTextEntry
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.password}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+        <HelperText type="error" visible={!!errors.password}>{errors.password?.message}</HelperText>
 
-        <TouchableOpacity
+        <Button
           testID="login-submit"
-          style={[styles.button, loading && styles.buttonDisabled]}
+          mode="contained"
           onPress={handleSubmit(onSubmit)}
+          loading={loading}
           disabled={loading}
+          style={styles.button}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.buttonText}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Log In</Text>
-          )}
-        </TouchableOpacity>
+          Log In
+        </Button>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.linkText}>
-            Don't have an account? <Text style={styles.linkBold}>Register</Text>
-          </Text>
-        </TouchableOpacity>
+        <Button
+          mode="text"
+          onPress={() => navigation.navigate('Register')}
+          labelStyle={styles.linkText}
+        >
+          Don't have an account? <Text style={styles.linkBold}>Register</Text>
+        </Button>
       </View>
     </KeyboardAvoidingView>
   );
@@ -125,61 +134,51 @@ export function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#264653',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 12,
+    borderRadius: 24,
   },
   logo: {
-    fontSize: 32,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 40,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginBottom: 4,
-    backgroundColor: '#fafafa',
-  },
-  inputError: {
-    borderColor: '#e53935',
-  },
-  errorText: {
-    color: '#e53935',
-    fontSize: 13,
-    marginBottom: 8,
+    marginBottom: 2,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   button: {
-    backgroundColor: '#2196F3',
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: '#2A9D8F',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  buttonContent: {
+    height: 52,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   linkText: {
-    textAlign: 'center',
-    color: '#666',
+    color: 'rgba(255,255,255,0.6)',
     fontSize: 14,
   },
   linkBold: {
-    color: '#2196F3',
+    color: '#F4A261',
     fontWeight: '600',
   },
 });

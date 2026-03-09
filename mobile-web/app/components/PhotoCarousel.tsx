@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { ListingImage } from '../types';
+import { colors } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,12 +65,12 @@ const styles = StyleSheet.create({
   placeholder: {
     width: SCREEN_WIDTH,
     height: SCREEN_WIDTH * 0.75,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#999',
+    color: colors.textMuted,
     fontSize: 16,
   },
   pagination: {
@@ -83,10 +84,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ccc',
+    backgroundColor: colors.border,
   },
   activeDot: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: colors.primary,
     width: 10,
     height: 10,
     borderRadius: 5,

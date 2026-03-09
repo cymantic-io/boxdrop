@@ -1,1 +1,1 @@
-rootProject.name = "garage-sale-backend"
+rootProject.name = "boxdrop-backend"

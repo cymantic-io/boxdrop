@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useClaimListing } from '../../hooks';
+import { colors } from '../../theme';
 import type { Listing } from '../../types';
 
 type ClaimScreenParams = {
@@ -133,7 +134,7 @@ export function ClaimScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     padding: 16,
     justifyContent: 'center',
   },
@@ -165,11 +166,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#2196F3',
+    color: colors.primary,
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   secondaryButtonText: {
-    color: '#2196F3',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F9FF',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#2196F3',
+    borderColor: colors.primary,
     padding: 20,
     alignItems: 'center',
     width: '100%',
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     fontFamily: 'monospace',
-    color: '#2196F3',
+    color: colors.primary,
     letterSpacing: 4,
   },
   instructions: {
@@ -262,6 +263,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   statusClaimed: {
-    color: '#2196F3',
+    color: colors.primary,
   },
 });

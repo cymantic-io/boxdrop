@@ -1,4 +1,4 @@
-export { useCurrentUser, useUpdateProfile } from './useAuth';
+export { useCurrentUser, useUpdateProfile, useChangePassword } from './useAuth';
 export {
   useMySales,
   useSale,

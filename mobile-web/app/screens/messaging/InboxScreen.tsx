@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useThreads } from '../../hooks';
+import { colors } from '../../theme';
 import type { MessageThread, ProfileStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Inbox'>;
@@ -79,7 +80,7 @@ export function InboxScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -116,7 +117,7 @@ export function InboxScreen({ navigation }: Props) {
           </View>
         }
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor="#2196F3" />
+          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2196F3',
+    color: colors.primary,
   },
   threadContent: {
     flex: 1,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   },
   listingTitle: {
     fontSize: 13,
-    color: '#2196F3',
+    color: colors.primary,
     marginBottom: 2,
   },
   preview: {
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   badge: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     minWidth: 24,
     height: 24,
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 24,

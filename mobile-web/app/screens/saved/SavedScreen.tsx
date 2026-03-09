@@ -7,7 +7,9 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ListingCard, EmptyState, LoadingScreen } from '../../components';
+import { WebContentWrapper } from '../../components/WebContentWrapper';
 import { useSavedListings } from '../../hooks';
+import { colors } from '../../theme';
 import { SavedStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<SavedStackParamList, 'Saved'>;
@@ -33,14 +35,17 @@ export function SavedScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <WebContentWrapper>
       <FlatList
         data={savedListings ?? []}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ListingCard
-            listing={item}
-            onPress={() => handleListingPress(item.id)}
-          />
+          item.listing ? (
+            <ListingCard
+              listing={item.listing}
+              onPress={() => handleListingPress(item.listingId)}
+            />
+          ) : null
         )}
         contentContainerStyle={styles.list}
         refreshControl={
@@ -50,6 +55,7 @@ export function SavedScreen({ navigation }: Props) {
           <EmptyState message="No saved items yet" />
         }
       />
+      </WebContentWrapper>
     </View>
   );
 }
@@ -57,7 +63,7 @@ export function SavedScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   list: {
     flexGrow: 1,

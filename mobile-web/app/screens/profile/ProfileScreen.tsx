@@ -1,28 +1,26 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Avatar, Card, Text, List, Divider, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCurrentUser } from '../../hooks';
+import { colors } from '../../theme';
+import { WebContentWrapper } from '../../components/WebContentWrapper';
 import type { ProfileStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
 interface MenuItem {
   label: string;
+  icon: string;
   route: keyof ProfileStackParamList;
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { label: 'My Sales', route: 'MySales' },
-  { label: 'My Transactions', route: 'MyTransactions' },
-  { label: 'Messages', route: 'Inbox' },
-  { label: 'Settings', route: 'Settings' },
+  { label: 'Edit Profile', icon: 'account-edit', route: 'EditProfile' },
+  { label: 'My Sales', icon: 'tag-multiple', route: 'MySales' },
+  { label: 'My Transactions', icon: 'swap-horizontal-circle', route: 'MyTransactions' },
+  { label: 'Messages', icon: 'message-text', route: 'Inbox' },
+  { label: 'Settings', icon: 'cog', route: 'Settings' },
 ];
 
 export function ProfileScreen({ navigation }: Props) {
@@ -31,7 +29,7 @@ export function ProfileScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -39,67 +37,65 @@ export function ProfileScreen({ navigation }: Props) {
   if (isError) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>
+        <Text variant="bodyLarge" style={styles.errorText}>
           {(error as Error)?.message ?? 'Failed to load profile'}
         </Text>
       </View>
     );
   }
 
+  const initial = (user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          {user?.avatarUrl ? (
-            <Text style={styles.avatarText}>
-              {(user.displayName ?? user.email ?? '?').charAt(0).toUpperCase()}
-            </Text>
-          ) : (
-            <Text style={styles.avatarText}>
-              {(user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()}
-            </Text>
-          )}
-        </View>
+      <WebContentWrapper>
+      <Card style={styles.profileCard} mode="outlined">
+        <Card.Content style={styles.profileContent}>
+          <Avatar.Text
+            size={80}
+            label={initial}
+            style={styles.avatar}
+            labelStyle={styles.avatarLabel}
+          />
+          <Text variant="headlineSmall" style={styles.displayName}>{user?.displayName ?? 'User'}</Text>
+          <Text variant="bodyMedium" style={styles.email}>{user?.email}</Text>
 
-        <Text style={styles.displayName}>{user?.displayName ?? 'User'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Text variant="titleLarge" style={styles.statValue}>{user?.trustScore ?? 50}</Text>
+              <Text variant="labelSmall" style={styles.statLabel}>Trust Score</Text>
+            </View>
+            <Divider style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text variant="titleLarge" style={styles.statValue}>{user?.reviewCount ?? 0}</Text>
+              <Text variant="labelSmall" style={styles.statLabel}>Reviews</Text>
+            </View>
+            <Divider style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text variant="titleLarge" style={styles.statValue}>
+                {user?.averageRating ? user.averageRating.toFixed(1) : '—'}
+              </Text>
+              <Text variant="labelSmall" style={styles.statLabel}>Avg Rating</Text>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
 
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{user?.trustScore ?? 50}</Text>
-            <Text style={styles.statLabel}>Trust Score</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{user?.reviewCount ?? 0}</Text>
-            <Text style={styles.statLabel}>Reviews</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>
-              {user?.averageRating ? user.averageRating.toFixed(1) : '—'}
-            </Text>
-            <Text style={styles.statLabel}>Avg Rating</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.menuCard}>
+      <Card style={styles.menuCard} mode="outlined">
         {MENU_ITEMS.map((item, index) => (
-          <TouchableOpacity
-            key={item.route}
-            style={[
-              styles.menuItem,
-              index < MENU_ITEMS.length - 1 && styles.menuItemBorder,
-            ]}
-            onPress={() => navigation.navigate(item.route as any)}
-            activeOpacity={0.6}
-          >
-            <Text style={styles.menuLabel}>{item.label}</Text>
-            <Text style={styles.chevron}>›</Text>
-          </TouchableOpacity>
+          <React.Fragment key={item.route}>
+            <List.Item
+              title={item.label}
+              left={(props) => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              onPress={() => navigation.navigate(item.route as any)}
+              titleStyle={styles.menuLabel}
+            />
+            {index < MENU_ITEMS.length - 1 && <Divider style={styles.divider} />}
+          </React.Fragment>
         ))}
-      </View>
+      </Card>
+      </WebContentWrapper>
     </ScrollView>
   );
 }
@@ -107,48 +103,41 @@ export function ProfileScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   content: {
     padding: 16,
   },
   centered: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
     marginBottom: 16,
+    backgroundColor: colors.surface,
+  },
+  profileContent: {
+    alignItems: 'center',
+    paddingVertical: 24,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E3F2FD',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
     marginBottom: 12,
   },
-  avatarText: {
-    fontSize: 32,
+  avatarLabel: {
+    color: colors.primary,
     fontWeight: '600',
-    color: '#2196F3',
   },
   displayName: {
-    fontSize: 22,
+    color: colors.textPrimary,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 4,
   },
   email: {
-    fontSize: 14,
-    color: '#999',
+    color: colors.textMuted,
     marginBottom: 20,
   },
   statsRow: {
@@ -161,48 +150,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 20,
+    color: colors.primary,
     fontWeight: '700',
-    color: '#2196F3',
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#999',
+    color: colors.textSecondary,
   },
   statDivider: {
     width: 1,
     height: 32,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.border,
   },
   menuCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
-  menuItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
   menuLabel: {
-    fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
   },
-  chevron: {
-    fontSize: 22,
-    color: '#CCC',
-    fontWeight: '300',
+  divider: {
+    backgroundColor: colors.borderLight,
   },
   errorText: {
-    fontSize: 16,
-    color: '#DC2626',
+    color: colors.error,
     textAlign: 'center',
   },
 });

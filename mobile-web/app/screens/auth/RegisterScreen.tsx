@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
+import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
@@ -60,7 +58,8 @@ export function RegisterScreen({ navigation }: Props) {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.logo}>🏷️ Garage Sale</Text>
+        <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+        <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
 
         <Controller
           control={control}
@@ -69,19 +68,21 @@ export function RegisterScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="register-name"
-              style={[styles.input, errors.displayName && styles.inputError]}
-              placeholder="Display Name"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Display Name"
               autoCapitalize="words"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.displayName}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.displayName && (
-          <Text style={styles.errorText}>{errors.displayName.message}</Text>
-        )}
+        <HelperText type="error" visible={!!errors.displayName}>{errors.displayName?.message}</HelperText>
 
         <Controller
           control={control}
@@ -96,19 +97,23 @@ export function RegisterScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="register-email"
-              style={[styles.input, errors.email && styles.inputError]}
-              placeholder="Email"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Email"
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.email}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.email && <Text testID="error-email" style={styles.errorText}>{errors.email.message}</Text>}
+        <HelperText testID="error-email" type="error" visible={!!errors.email}>{errors.email?.message}</HelperText>
 
         <Controller
           control={control}
@@ -123,17 +128,21 @@ export function RegisterScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="register-password"
-              style={[styles.input, errors.password && styles.inputError]}
-              placeholder="Password"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Password"
               secureTextEntry
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.password}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.password && <Text testID="error-password" style={styles.errorText}>{errors.password.message}</Text>}
+        <HelperText testID="error-password" type="error" visible={!!errors.password}>{errors.password?.message}</HelperText>
 
         <Controller
           control={control}
@@ -145,38 +154,42 @@ export function RegisterScreen({ navigation }: Props) {
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               testID="register-confirm-password"
-              style={[styles.input, errors.confirmPassword && styles.inputError]}
-              placeholder="Confirm Password"
-              placeholderTextColor="#999"
+              mode="flat"
+              label="Confirm Password"
               secureTextEntry
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
+              error={!!errors.confirmPassword}
+              style={styles.input}
+              textColor="#FFFFFF"
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
             />
           )}
         />
-        {errors.confirmPassword && (
-          <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
-        )}
+        <HelperText type="error" visible={!!errors.confirmPassword}>{errors.confirmPassword?.message}</HelperText>
 
-        <TouchableOpacity
+        <Button
           testID="register-submit"
-          style={[styles.button, loading && styles.buttonDisabled]}
+          mode="contained"
           onPress={handleSubmit(onSubmit)}
+          loading={loading}
           disabled={loading}
+          style={styles.button}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.buttonText}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Create Account</Text>
-          )}
-        </TouchableOpacity>
+          Create Account
+        </Button>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.linkText}>
-            Already have an account? <Text style={styles.linkBold}>Log in</Text>
-          </Text>
-        </TouchableOpacity>
+        <Button
+          mode="text"
+          onPress={() => navigation.navigate('Login')}
+          labelStyle={styles.linkText}
+        >
+          Already have an account? Log in
+        </Button>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -185,62 +198,52 @@ export function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#264653',
   },
   content: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     paddingVertical: 32,
   },
+  logoImage: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 12,
+    borderRadius: 24,
+  },
   logo: {
-    fontSize: 32,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 40,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginBottom: 4,
-    backgroundColor: '#fafafa',
-  },
-  inputError: {
-    borderColor: '#e53935',
-  },
-  errorText: {
-    color: '#e53935',
-    fontSize: 13,
-    marginBottom: 8,
+    marginBottom: 2,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   button: {
-    backgroundColor: '#2196F3',
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: '#2A9D8F',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  buttonContent: {
+    height: 52,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   linkText: {
-    textAlign: 'center',
-    color: '#666',
+    color: 'rgba(255,255,255,0.6)',
     fontSize: 14,
   },
   linkBold: {
-    color: '#2196F3',
+    color: '#F4A261',
     fontWeight: '600',
   },
 });

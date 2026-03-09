@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Card, Text } from 'react-native-paper';
 import { Sale } from '../types';
 import { StatusBadge } from './StatusBadge';
+import { colors } from '../theme';
 
 interface SaleCardProps {
   sale: Sale;
@@ -13,66 +15,57 @@ export const SaleCard: React.FC<SaleCardProps> = ({ sale, onPress }) => {
   const endsAt = new Date(sale.endsAt).toLocaleDateString();
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>
-          {sale.title}
+    <Card style={styles.card} onPress={onPress} mode="outlined">
+      <Card.Content>
+        <View style={styles.header}>
+          <Text variant="titleMedium" style={styles.title} numberOfLines={1}>
+            {sale.title}
+          </Text>
+          <StatusBadge status={sale.status} />
+        </View>
+        <Text variant="bodySmall" style={styles.address} numberOfLines={1}>
+          {sale.address}
         </Text>
-        <StatusBadge status={sale.status} />
-      </View>
-      <Text style={styles.address} numberOfLines={1}>
-        {sale.address}
-      </Text>
-      <Text style={styles.dates}>
-        {startsAt} – {endsAt}
-      </Text>
-      {sale.description ? (
-        <Text style={styles.description} numberOfLines={2}>
-          {sale.description}
+        <Text variant="bodySmall" style={styles.dates}>
+          {startsAt} – {endsAt}
         </Text>
-      ) : null}
-    </TouchableOpacity>
+        {sale.description ? (
+          <Text variant="bodySmall" style={styles.description} numberOfLines={2}>
+            {sale.description}
+          </Text>
+        ) : null}
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    color: colors.textPrimary,
     flex: 1,
     marginRight: 8,
+    fontWeight: '700',
   },
   address: {
-    fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   dates: {
-    fontSize: 13,
-    color: '#888',
+    color: colors.textMuted,
     marginBottom: 4,
   },
   description: {
-    fontSize: 13,
-    color: '#555',
+    color: colors.textSecondary,
     marginTop: 4,
   },
 });

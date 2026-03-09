@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useThread, useSendMessage } from '../../hooks';
+import { colors } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';
 import type { Message, ProfileStackParamList } from '../../types';
 
@@ -76,7 +77,7 @@ export function ChatScreen({ route, navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -146,11 +147,11 @@ export function ChatScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     marginVertical: 3,
   },
   ownBubble: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   sendButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 20,
     paddingHorizontal: 18,
     paddingVertical: 10,

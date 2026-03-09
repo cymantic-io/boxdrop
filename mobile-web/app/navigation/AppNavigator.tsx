@@ -1,8 +1,21 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Platform, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '../stores/useAuthStore';
+import { colors } from '../theme';
+import { TopNavBar } from '../components/TopNavBar';
+import type {
+  AuthStackParamList,
+  HomeStackParamList,
+  MapStackParamList,
+  CreateSaleStackParamList,
+  SavedStackParamList,
+  ProfileStackParamList,
+} from '../types';
+
+const isWeb = Platform.OS === 'web';
 
 // Auth screens
 import { LoginScreen } from '../screens/auth/LoginScreen';
@@ -34,15 +47,18 @@ import { MyTransactionsScreen } from '../screens/transactions/MyTransactionsScre
 import { InboxScreen } from '../screens/messaging/InboxScreen';
 import { ChatScreen } from '../screens/messaging/ChatScreen';
 import { SettingsScreen } from '../screens/profile/SettingsScreen';
+import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
+import { ChangePasswordScreen } from '../screens/profile/ChangePasswordScreen';
 
 const defaultStackScreenOptions = {
-  headerStyle: { backgroundColor: '#2196F3' },
-  headerTintColor: '#FFFFFF',
+  headerStyle: { backgroundColor: colors.darkSurface },
+  headerTintColor: colors.white,
   headerTitleStyle: { fontWeight: 'bold' as const },
+  ...(isWeb ? { headerShown: false } : {}),
 };
 
 // --- Auth Stack ---
-const AuthStackNav = createNativeStackNavigator();
+const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
 
 function AuthStack() {
   return (
@@ -54,7 +70,7 @@ function AuthStack() {
 }
 
 // --- Home Stack ---
-const HomeStackNav = createNativeStackNavigator();
+const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStack() {
   return (
@@ -68,7 +84,7 @@ function HomeStack() {
 }
 
 // --- Map Stack ---
-const MapStackNav = createNativeStackNavigator();
+const MapStackNav = createNativeStackNavigator<MapStackParamList>();
 
 function MapStack() {
   return (
@@ -81,7 +97,7 @@ function MapStack() {
 }
 
 // --- Create Sale Stack ---
-const CreateStackNav = createNativeStackNavigator();
+const CreateStackNav = createNativeStackNavigator<CreateSaleStackParamList>();
 
 function CreateStack() {
   return (
@@ -93,7 +109,7 @@ function CreateStack() {
 }
 
 // --- Saved Stack ---
-const SavedStackNav = createNativeStackNavigator();
+const SavedStackNav = createNativeStackNavigator<SavedStackParamList>();
 
 function SavedStack() {
   return (
@@ -105,7 +121,7 @@ function SavedStack() {
 }
 
 // --- Profile Stack ---
-const ProfileStackNav = createNativeStackNavigator();
+const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStack() {
   return (
@@ -115,6 +131,8 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="MyTransactions" component={MyTransactionsScreen} options={{ title: 'My Transactions' }} />
       <ProfileStackNav.Screen name="Inbox" component={InboxScreen} />
       <ProfileStackNav.Screen name="Chat" component={ChatScreen} />
+      <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit Profile' }} />
+      <ProfileStackNav.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
       <ProfileStackNav.Screen name="Settings" component={SettingsScreen} />
     </ProfileStackNav.Navigator>
   );
@@ -126,14 +144,30 @@ const Tab = createBottomTabNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator
+      layout={isWeb ? ({ children, state, navigation, descriptors }: any) => (
+        <View style={{ flex: 1 }}>
+          <TopNavBar state={state} navigation={navigation} descriptors={descriptors} />
+          {children}
+        </View>
+      ) : undefined}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E0E0E0',
-        },
-        tabBarActiveTintColor: '#2196F3',
-        tabBarInactiveTintColor: '#757575',
+        tabBarStyle: isWeb
+          ? { display: 'none' as const }
+          : {
+              backgroundColor: colors.white,
+              borderTopColor: colors.borderLight,
+              borderTopWidth: 1,
+              elevation: 8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              height: 56,
+              paddingBottom: 6,
+            },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
       }}
     >
       <Tab.Screen
@@ -141,7 +175,7 @@ function MainTabs() {
         component={HomeStack}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: () => <Text>🏠</Text>,
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="home" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -149,7 +183,7 @@ function MainTabs() {
         component={MapStack}
         options={{
           tabBarLabel: 'Map',
-          tabBarIcon: () => <Text>🗺️</Text>,
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="map-marker-radius" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -157,7 +191,7 @@ function MainTabs() {
         component={CreateStack}
         options={{
           tabBarLabel: 'Create',
-          tabBarIcon: () => <Text>➕</Text>,
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="plus-circle" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -165,7 +199,7 @@ function MainTabs() {
         component={SavedStack}
         options={{
           tabBarLabel: 'Saved',
-          tabBarIcon: () => <Text>♥</Text>,
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="heart" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -173,7 +207,7 @@ function MainTabs() {
         component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: () => <Text>👤</Text>,
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="account" size={size} color={color} />,
         }}
       />
     </Tab.Navigator>

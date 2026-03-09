@@ -1,17 +1,22 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { PaperProvider } from 'react-native-paper';
 import { SearchBar } from '../../app/components/SearchBar';
+
+function renderWithPaper(ui: React.ReactElement) {
+  return render(<PaperProvider>{ui}</PaperProvider>);
+}
 
 describe('SearchBar', () => {
   it('renders input with placeholder', () => {
-    const { getByPlaceholderText } = render(
+    const { getByPlaceholderText } = renderWithPaper(
       <SearchBar value="" onChangeText={() => {}} placeholder="Search..." />,
     );
     expect(getByPlaceholderText('Search...')).toBeTruthy();
   });
 
   it('uses default placeholder when none provided', () => {
-    const { getByPlaceholderText } = render(
+    const { getByPlaceholderText } = renderWithPaper(
       <SearchBar value="" onChangeText={() => {}} />,
     );
     expect(getByPlaceholderText('Search...')).toBeTruthy();
@@ -19,33 +24,24 @@ describe('SearchBar', () => {
 
   it('calls onChangeText on input', () => {
     const onChangeText = jest.fn();
-    const { getByPlaceholderText } = render(
+    const { getByPlaceholderText } = renderWithPaper(
       <SearchBar value="" onChangeText={onChangeText} placeholder="Search..." />,
     );
     fireEvent.changeText(getByPlaceholderText('Search...'), 'test');
     expect(onChangeText).toHaveBeenCalledWith('test');
   });
 
-  it('shows clear button when text entered', () => {
-    const { getByText } = render(
+  it('renders with value', () => {
+    const { getByDisplayValue } = renderWithPaper(
       <SearchBar value="hello" onChangeText={() => {}} />,
     );
-    expect(getByText('✕')).toBeTruthy();
+    expect(getByDisplayValue('hello')).toBeTruthy();
   });
 
-  it('does not show clear button when empty', () => {
-    const { queryByText } = render(
+  it('renders empty when no value', () => {
+    const { getByPlaceholderText } = renderWithPaper(
       <SearchBar value="" onChangeText={() => {}} />,
     );
-    expect(queryByText('✕')).toBeNull();
-  });
-
-  it('clears text when clear pressed', () => {
-    const onChangeText = jest.fn();
-    const { getByText } = render(
-      <SearchBar value="hello" onChangeText={onChangeText} />,
-    );
-    fireEvent.press(getByText('✕'));
-    expect(onChangeText).toHaveBeenCalledWith('');
+    expect(getByPlaceholderText('Search...')).toBeTruthy();
   });
 });

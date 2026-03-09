@@ -27,6 +27,7 @@ import {
   LoginRequest,
   RegisterRequest,
   RefreshRequest,
+  ChangePasswordRequest,
 } from '../types';
 
 const api = axios.create({
@@ -128,6 +129,10 @@ export async function register(payload: RegisterRequest): Promise<AuthResponse> 
 export async function refreshToken(payload: RefreshRequest): Promise<AuthResponse> {
   const { data } = await api.post<ApiResponse<AuthResponse>>('/auth/refresh', payload);
   return data.data;
+}
+
+export async function changePassword(payload: ChangePasswordRequest): Promise<void> {
+  await api.post('/auth/change-password', payload);
 }
 
 // --- User ---

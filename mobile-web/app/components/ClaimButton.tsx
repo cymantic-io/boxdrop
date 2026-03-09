@@ -1,5 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
+import { colors } from '../theme';
 
 interface ClaimButtonProps {
   price: number;
@@ -8,32 +10,30 @@ interface ClaimButtonProps {
 }
 
 export const ClaimButton: React.FC<ClaimButtonProps> = ({ price, onPress, loading }) => (
-  <TouchableOpacity
-    style={styles.button}
+  <Button
+    mode="contained"
     onPress={onPress}
+    loading={loading}
     disabled={loading}
-    activeOpacity={0.8}
+    style={styles.button}
+    contentStyle={styles.content}
+    labelStyle={styles.label}
+    buttonColor={colors.primary}
   >
-    {loading ? (
-      <ActivityIndicator color="#fff" />
-    ) : (
-      <Text style={styles.text}>Claim for ${price.toFixed(2)}</Text>
-    )}
-  </TouchableOpacity>
+    Claim for ${price.toFixed(2)}
+  </Button>
 );
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#2e7d32',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 14,
+  },
+  content: {
     minHeight: 54,
   },
-  text: {
-    color: '#fff',
+  label: {
     fontSize: 17,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

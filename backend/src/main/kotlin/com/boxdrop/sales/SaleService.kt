@@ -1,0 +1,78 @@
+package com.boxdrop.sales
+
+import com.boxdrop.common.dto.*
+import com.boxdrop.common.exceptions.BadRequestException
+import com.boxdrop.common.exceptions.NotFoundException
+import com.boxdrop.common.exceptions.UnauthorizedException
+import com.boxdrop.listings.ListingRepository
+import jakarta.inject.Singleton
+import java.time.Instant
+import java.util.UUID
+
+@Singleton
+class SaleService(
+    private val saleRepository: SaleRepository,
+    private val listingRepository: ListingRepository
+) {
+    fun create(sellerId: UUID, request: CreateSaleRequest): SaleResponse {
+        val sale = saleRepository.save(Sale(
+            id = UUID.randomUUID(), sellerId = sellerId, title = request.title,
+            description = request.description, address = request.address,
+            latitude = request.latitude, longitude = request.longitude,
+            startsAt = request.startsAt, endsAt = request.endsAt,
+            status = "DRAFT", createdAt = Instant.now(), updatedAt = Instant.now()
+        ))
+        return toResponse(sale, 0)
+    }
+
+    fun getMySales(sellerId: UUID): List<SaleResponse> =
+        saleRepository.findBySellerId(sellerId).map { toResponse(it) }
+
+    fun getById(id: UUID): SaleResponse {
+        val sale = saleRepository.findById(id).orElseThrow { NotFoundException("Sale not found") }
+        return toResponse(sale)
+    }
+
+    fun update(saleId: UUID, sellerId: UUID, request: UpdateSaleRequest): SaleResponse {
+        val sale = saleRepository.findById(saleId).orElseThrow { NotFoundException("Sale not found") }
+        if (sale.sellerId != sellerId) throw UnauthorizedException("Not your sale")
+        val updated = sale.copy(
+            title = request.title ?: sale.title, description = request.description ?: sale.description,
+            address = request.address ?: sale.address, latitude = request.latitude ?: sale.latitude,
+            longitude = request.longitude ?: sale.longitude, startsAt = request.startsAt ?: sale.startsAt,
+            endsAt = request.endsAt ?: sale.endsAt, updatedAt = Instant.now()
+        )
+        saleRepository.update(updated)
+        return toResponse(updated)
+    }
+
+    fun activate(saleId: UUID, sellerId: UUID): SaleResponse {
+        val sale = saleRepository.findById(saleId).orElseThrow { NotFoundException("Sale not found") }
+        if (sale.sellerId != sellerId) throw UnauthorizedException("Not your sale")
+        if (sale.status != "DRAFT") throw BadRequestException("Sale is not in DRAFT status")
+        val activated = sale.copy(status = "ACTIVE", updatedAt = Instant.now())
+        saleRepository.update(activated)
+        return toResponse(activated)
+    }
+
+    fun delete(saleId: UUID, sellerId: UUID) {
+        val sale = saleRepository.findById(saleId).orElseThrow { NotFoundException("Sale not found") }
+        if (sale.sellerId != sellerId) throw UnauthorizedException("Not your sale")
+        saleRepository.delete(sale)
+    }
+
+    fun findNearby(lat: Double, lng: Double, radiusKm: Double): List<SaleResponse> =
+        saleRepository.findNearby(lat, lng, radiusKm * 1000).map { toResponse(it) }
+
+    private fun toResponse(sale: Sale, listingCount: Int? = null): SaleResponse {
+        val count = listingCount ?: listingRepository.findBySaleId(sale.id).size
+        val jitterLat = sale.latitude + (Math.random() - 0.5) * 0.001
+        val jitterLng = sale.longitude + (Math.random() - 0.5) * 0.001
+        return SaleResponse(
+            id = sale.id.toString(), sellerId = sale.sellerId.toString(), title = sale.title,
+            description = sale.description, address = null, latitude = jitterLat, longitude = jitterLng,
+            startsAt = sale.startsAt, endsAt = sale.endsAt, status = sale.status,
+            listingCount = count, createdAt = sale.createdAt
+        )
+    }
+}

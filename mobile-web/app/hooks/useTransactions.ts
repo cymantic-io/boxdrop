@@ -58,7 +58,7 @@ export function useConfirmPickup() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => confirmPickup(id),
+    mutationFn: ({ id, token }: { id: string; token: string }) => confirmPickup(id, { token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all });
     },

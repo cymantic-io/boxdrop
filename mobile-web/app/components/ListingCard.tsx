@@ -1,5 +1,7 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { Card, Text } from 'react-native-paper';
+import { colors } from '../theme';
 import { Listing } from '../types';
 
 interface ListingCardProps {
@@ -12,18 +14,18 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) =>
   const imageUrl = listing.images?.[0]?.imageUrl;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <Card style={styles.card} onPress={onPress} mode="outlined">
       <View style={styles.imageContainer}>
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.image} />
         ) : (
           <View style={styles.placeholderImage}>
-            <Text style={styles.placeholderText}>No Photo</Text>
+            <Text variant="bodySmall" style={styles.placeholderText}>No Photo</Text>
           </View>
         )}
       </View>
-      <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={1}>
+      <Card.Content style={styles.info}>
+        <Text variant="titleSmall" style={styles.title} numberOfLines={1}>
           {listing.title}
         </Text>
         <View style={styles.priceRow}>
@@ -34,25 +36,19 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress }) =>
             <Text style={styles.originalPrice}>${listing.startingPrice.toFixed(2)}</Text>
           )}
         </View>
-        <Text style={styles.category}>{listing.category}</Text>
-      </View>
-    </TouchableOpacity>
+        <Text variant="labelSmall" style={styles.category}>{listing.category}</Text>
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     marginBottom: 12,
     flex: 1,
     marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
   },
   imageContainer: {
     width: '100%',
@@ -65,21 +61,20 @@ const styles = StyleSheet.create({
   placeholderImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#999',
-    fontSize: 12,
+    color: colors.textMuted,
   },
   info: {
-    padding: 8,
+    paddingTop: 8,
+    paddingBottom: 10,
   },
   title: {
-    fontSize: 14,
+    color: colors.textPrimary,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
   priceRow: {
     flexDirection: 'row',
@@ -90,19 +85,18 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#2e7d32',
+    color: colors.success,
   },
   priceDecayed: {
-    color: '#e65100',
+    color: colors.accent,
   },
   originalPrice: {
     fontSize: 12,
-    color: '#999',
+    color: colors.textMuted,
     textDecorationLine: 'line-through',
   },
   category: {
-    fontSize: 11,
-    color: '#888',
+    color: colors.textSecondary,
     marginTop: 2,
   },
 });
