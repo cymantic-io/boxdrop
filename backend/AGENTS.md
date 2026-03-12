@@ -183,7 +183,7 @@ Key dependencies (see `build.gradle.kts`):
 
 ## Adding a New Feature Domain
 
-1. Create a new package under `com.boxdrop/{feature}/`
+1. Create a new package under `com.cymantic.boxdrop/{feature}/`
 2. Add entity class annotated with `@MappedEntity` and `@Serdeable`
 3. Add repository interface extending `CrudRepository`, annotated with `@JdbcRepository(dialect = Dialect.POSTGRES)`
 4. Add service class annotated with `@Singleton`

@@ -6,7 +6,7 @@ plugins {
     id("org.owasp.dependencycheck") version "9.0.9"
 }
 
-group = "com.boxdrop"
+group = "com.cymantic.boxdrop"
 version = "0.1"
 
 repositories {
@@ -19,7 +19,7 @@ micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("com.boxdrop.*")
+        annotations("com.cymantic.boxdrop.*")
     }
 }
 
@@ -60,7 +60,13 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.boxdrop.ApplicationKt")
+    mainClass.set("com.cymantic.boxdrop.ApplicationKt")
+}
+
+val run by tasks.getting(JavaExec::class) {
+    jvmArgs = listOf(
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005",
+    )
 }
 
 tasks.test {

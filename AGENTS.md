@@ -26,7 +26,7 @@ boxdrop/
 │   ├── build.gradle.kts      # Gradle build config (Micronaut 4.3.8)
 │   ├── Dockerfile             # Multi-stage Docker build
 │   └── src/main/
-│       ├── kotlin/com/boxdrop/
+│       ├── kotlin/com/cymantic/boxdrop/
 │       │   ├── auth/          # Registration, login, OTP/TOTP/SMS verification
 │       │   ├── sales/         # Sale CRUD, activation, nearby queries
 │       │   ├── listings/      # Listing CRUD, images, price decay
@@ -66,7 +66,7 @@ boxdrop/
 │   └── seed_test_sales.sql   # Test data seed script
 ├── docker-compose.yml        # Local infra (Postgres, Redis, MinIO)
 ├── build.sh                  # Full build + test pipeline
-└── TODO.md                   # Launch checklist
+└── docs/TODO.md              # Launch checklist
 ```
 
 ## Prerequisites
@@ -184,4 +184,4 @@ An nginx reverse proxy config is at `deploy/nginx/nginx.conf` routing `/api/` an
 
 The backend has a multi-stage Dockerfile for containerized deployment.
 
-See `TODO.md` for the full launch checklist including EAS Build setup, app store submissions, and service API keys.
+See `docs/TODO.md` for the full launch checklist including EAS Build setup, app store submissions, and service API keys.

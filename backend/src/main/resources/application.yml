@@ -12,6 +12,7 @@ micronaut:
       configurations:
         web:
           allowed-origins:
+            - http://10.0.2.2
             - http://localhost
             - http://localhost:19006
             - http://localhost:8081
