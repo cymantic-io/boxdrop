@@ -1,4 +1,4 @@
-name: Garage Sale CI
+name: Box Drop CI
 
 on:
   push:

@@ -57,7 +57,14 @@ test.describe('Claim and Payment Flow', () => {
     await expect(page.getByText('Claimable Widget').first()).toBeVisible({ timeout: 10000 });
     await page.getByText('Claimable Widget').first().click();
 
-    await expect(page.getByTestId('claim-button')).toBeVisible({ timeout: 10000 });
+    // Wait for listing detail screen container
+    await expect(page.getByTestId('listing-detail-screen')).toBeVisible({ timeout: 15000 });
+    
+    // Give React time to fetch and render listing data
+    await page.waitForTimeout(3000);
+    
+    // Now check for claim button - should be visible for a non-owner
+    await expect(page.getByTestId('claim-button')).toBeVisible({ timeout: 15000 });
 
     await page.getByTestId('claim-button').click();
 

@@ -60,7 +60,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
   const isOwner = sale?.sellerId === userId;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="listing-detail-screen">
       <WebContentWrapper>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <PhotoCarousel images={listing.images ?? []} />
