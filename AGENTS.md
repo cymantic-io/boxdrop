@@ -191,15 +191,8 @@ Based on eBay standards, enforced on backend:
 
 ## Deployment
 
-<!-- TODO: Production deployment target and process not yet decided -->
-<!-- TODO: Domain name and SSL certificate setup -->
-<!-- TODO: Production database hosting (managed PostgreSQL) -->
-<!-- TODO: Production Redis hosting -->
-<!-- TODO: CDN for static assets and images -->
-<!-- TODO: Monitoring and alerting setup -->
+Recommended stack: **Railway** (backend) + **Vercel** (frontend) + **Neon** (PostgreSQL) + **Upstash** (Redis).
 
-An nginx reverse proxy config is at `deploy/nginx/nginx.conf` routing `/api/` and `/ws/` to the backend and `/` to the frontend.
+See [docs/TODO.md](docs/TODO.md) for the full deployment guide with step-by-step instructions.
 
-The backend has a multi-stage Dockerfile for containerized deployment.
-
-See `docs/TODO.md` for the full launch checklist including EAS Build setup, app store submissions, and service API keys.
+For self-hosted alternative, see `deploy/nginx/nginx.conf` for the Docker-based reverse proxy config.

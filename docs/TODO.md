@@ -1,4 +1,83 @@
-# BoxDrop — TODO
+# BoxDrop — Launch Checklist
+
+## Deployment Infrastructure
+
+### Recommended Stack (Cheapest: ~$5-10/mo)
+
+| Component | Platform | Free Tier | Paid Tier |
+|-----------|----------|-----------|------------|
+| Backend (Kotlin) | [Railway](https://railway.app) or [Render](https://render.com) | No | $5-7/mo |
+| Frontend (Web) | [Vercel](https://vercel.com) | ✅ Yes | $0 |
+| Database | [Neon](https://neon.tech) or [Supabase](https://supabase.com) | ✅ Yes | $0-10/mo |
+| Redis | [Upstash](https://upstash.com) | ✅ Yes | $0 |
+| Storage (Images) | AWS S3 or Supabase Storage | ✅ Yes | ~$1/mo |
+| Maps | Google Maps | ✅ Yes ($200 credit) | $0-200/mo |
+
+### Quick Start Deploy
+
+#### 1. Railway (Backend)
+
+```bash
+# Sign up at https://railway.app
+# Connect your GitHub repo
+# Create new project → "Deploy from GitHub repo"
+# Select boxdrop repo
+# Add environment variables:
+#   - DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD
+#   - REDIS_URI
+#   - JWT_SECRET
+#   - STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET
+#   - RESEND_API_KEY
+#   - TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER
+#   - S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET
+```
+
+**Railway Docs:** https://docs.railway.app/deploy/docker
+
+#### 2. Vercel (Frontend Web)
+
+```bash
+# Sign up at https://vercel.com
+# Import your GitHub repo
+# Framework preset: Other
+# Build command: npx expo export:web
+# Output directory: dist
+# Environment variables:
+#   - EXPO_PUBLIC_API_URL = https://your-railway-app.up.railway.app/api
+```
+
+**Vercel Docs:** https://vercel.com/docs/deployments
+
+#### 3. Neon (PostgreSQL with PostGIS)
+
+```bash
+# Sign up at https://neon.tech
+# Create project → Select region closest to users
+# Get connection string
+# Add to Railway environment variables
+# Enable PostGIS extension:
+#   psql $NEON_URL -c "CREATE EXTENSION postgis;"
+```
+
+**Neon Docs:** https://neon.tech/docs
+
+#### 4. Upstash (Redis)
+
+```bash
+# Sign up at https://upstash.com
+# Create Redis database
+# Copy REST API URL
+# Add to Railway: REDIS_URI=redis://$HOST:$PORT
+# Or use Upstash Redis directly
+```
+
+**Upstash Docs:** https://docs.upstash.com
+
+### PostGIS Note
+
+Neon supports PostGIS extensions. If issues arise, alternatives:
+- **Supabase** — Full PostgreSQL with PostGIS
+- **CockroachDB** — No PostGIS, use lat/long queries instead
 
 ## iOS & Android Launch
 
