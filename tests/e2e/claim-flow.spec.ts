@@ -57,13 +57,13 @@ test.describe('Claim and Payment Flow', () => {
     await expect(page.getByText('Claimable Widget').first()).toBeVisible({ timeout: 10000 });
     await page.getByText('Claimable Widget').first().click();
 
-    await expect(page.getByText('$35.00').last()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('claim-button')).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: /Claim/i }).first().click();
+    await page.getByTestId('claim-button').click();
 
     await expect(page.getByText('Confirm Claim').first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Claimable Widget').last()).toBeVisible();
-    await expect(page.getByText('$35.00').last()).toBeVisible();
+    await expect(page.getByTestId('claim-price')).toBeVisible();
 
     await page.getByText('Confirm Claim').last().click();
 

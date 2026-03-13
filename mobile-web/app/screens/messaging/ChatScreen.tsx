@@ -9,10 +9,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQueryClient } from '@tanstack/react-query';
-import { useThread, useSendMessage, useAcceptOffer, useRejectOffer, useCounterOffer } from '../../hooks';
+import { useThread, useSendMessage, useAcceptOffer, useRejectOffer, useCounterOffer, useListing } from '../../hooks';
 import { colors } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';
 import type { Message, MessagesStackParamList } from '../../types';
@@ -33,6 +34,7 @@ export function ChatScreen({ route, navigation }: Props) {
 
   const { data: thread, isLoading, isError, error } = useThread(threadId);
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
+  const { data: listing } = useListing(thread?.thread.listingId);
 
   useEffect(() => {
     if (listingTitle) {
@@ -184,6 +186,25 @@ export function ChatScreen({ route, navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {listing && (
+        <View style={styles.listingHeader}>
+          {listing.images?.[0] && (
+            <Image source={{ uri: listing.images[0].imageUrl }} style={styles.listingImage} />
+          )}
+          <View style={styles.listingInfo}>
+            <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
+            <View style={styles.listingMeta}>
+              <Text style={styles.listingPrice}>${listing.currentPrice.toFixed(2)}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: listing.status === 'AVAILABLE' ? '#ECFDF3' : '#FEE2E2' }]}>
+                <Text style={[styles.statusText, { color: listing.status === 'AVAILABLE' ? '#12B76A' : '#F04438' }]}>
+                  {listing.status}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -357,4 +378,12 @@ const styles = StyleSheet.create({
   counterField: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 16, color: colors.textPrimary },
   counterSubmit: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center' },
   counterSubmitText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  listingHeader: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+  listingImage: { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.background },
+  listingInfo: { flex: 1, marginLeft: 12 },
+  listingTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },
+  listingMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  listingPrice: { fontSize: 16, fontWeight: '700', color: colors.primary },
+  statusBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
 });

@@ -19,6 +19,7 @@ export const ClaimButton: React.FC<ClaimButtonProps> = ({ price, onPress, loadin
     contentStyle={styles.content}
     labelStyle={styles.label}
     buttonColor={colors.primary}
+    testID="claim-button"
   >
     Claim for ${price.toFixed(2)}
   </Button>

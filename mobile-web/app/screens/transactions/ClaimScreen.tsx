@@ -98,7 +98,7 @@ export function ClaimScreen({ route, navigation }: Props) {
         )}
 
         <Text style={styles.listingTitle}>{listing.title}</Text>
-        <Text style={styles.price}>${listing.currentPrice.toFixed(2)}</Text>
+        <Text style={styles.price} testID="claim-price">${listing.currentPrice.toFixed(2)}</Text>
 
         {isError && (
           <View style={styles.errorContainer}>
