@@ -16,7 +16,9 @@ BoxDrop is a **hyper-local garage sale marketplace**. Sellers create sale events
 | [docs/TODO.md](docs/TODO.md) | Launch checklist |
 | [VS_CODE_SETUP.md](VS_CODE_SETUP.md) | IDE configuration |
 | [MOBILE_CLIENTS.md](MOBILE_CLIENTS.md) | iOS/Android testing |
+| [backend/README.md](backend/README.md) | Backend secrets & environment setup |
 | [backend/AGENTS.md](backend/AGENTS.md) | Backend-specific patterns and config |
+| [mobile-web/README.md](mobile-web/README.md) | Frontend secrets & environment setup |
 | [mobile-web/AGENTS.md](mobile-web/AGENTS.md) | Frontend-specific patterns and config |
 
 ## Architecture

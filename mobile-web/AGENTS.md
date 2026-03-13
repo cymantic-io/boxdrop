@@ -1,6 +1,8 @@
 # Mobile-Web Frontend — Agent Guide
 
 > For project overview, quick start, and shared conventions, see the root [AGENTS.md](../AGENTS.md).
+>
+> For secrets and environment setup, see [README.md](README.md).
 
 ## Overview
 
