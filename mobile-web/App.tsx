@@ -63,6 +63,32 @@ export default function App() {
     loadStoredTokens();
   }, []);
 
+  // Set document title on mount and for navigation
+  useEffect(() => {
+    const handleStateChange = () => {
+      const state = navigationRef.current?.getRootState();
+      if (!state) return;
+      
+      // Navigate through nested navigators to find the current screen
+      let route = state.routes[state.index];
+      while (route.state && 'routes' in route.state && route.state.index !== undefined) {
+        route = route.state.routes[route.state.index];
+      }
+      
+      if (route?.name) {
+        const title = getScreenTitle(route.name);
+        document.title = title ? `${title} | BoxDrop` : 'BoxDrop';
+      }
+    };
+
+    const subscription = navigationRef.addListener('state', handleStateChange);
+    handleStateChange(); // Set initial title
+
+    return () => {
+      subscription();
+    };
+  }, []);
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
@@ -76,4 +102,33 @@ export default function App() {
       </QueryClientProvider>
     </SafeAreaProvider>
   );
+}
+
+function getScreenTitle(routeName: string): string {
+  const titles: Record<string, string> = {
+    Home: 'Explore',
+    HomeTab: 'Explore',
+    SaleDetail: 'Sale Details',
+    ListingDetail: 'Listing Details',
+    Claim: 'Claim Item',
+    MySalesList: 'My Sales',
+    ManageSale: 'Manage Sale',
+    CreateSale: 'Create Sale',
+    AddListings: 'Add Listings',
+    Inbox: 'Messages',
+    Chat: 'Chat',
+    Profile: 'Profile',
+    MyTransactions: 'My Transactions',
+    Saved: 'Saved Items',
+    EditProfile: 'Edit Profile',
+    Settings: 'Settings',
+    SecuritySettings: 'Security',
+    TOTPSetup: 'Authenticator Setup',
+    SMSSetup: 'SMS Setup',
+    Login: 'Login',
+    Register: 'Register',
+    VerifyCode: 'Verify Code',
+    MethodPicker: 'Choose Method',
+  };
+  return titles[routeName] || '';
 }

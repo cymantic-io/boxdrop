@@ -212,20 +212,31 @@ function MainTabs() {
   );
 }
 
-// Simple Auth Overlay - renders LoginScreen directly without a navigator
-// This avoids the NativeStackNavigator error when navigating between tabs
+// Simple Auth Overlay - renders auth stack directly without nested NavigationContainer
 function AuthOverlay() {
+  const [authStack, setAuthStack] = React.useState<'login' | 'register' | 'verifyCode' | 'methodPicker'>('login');
+  
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]} testID="auth-overlay">
       {isWeb ? (
-        <LoginScreen />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          {authStack === 'login' && <LoginScreenWrapper />}
+        </View>
       ) : (
         <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
-          <LoginScreen />
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            {authStack === 'login' && <LoginScreenWrapper />}
+          </View>
         </BlurView>
       )}
     </View>
   );
+}
+
+// Wrapper that provides mock navigation for LoginScreen
+function LoginScreenWrapper() {
+  const navigate = () => {} // Mock - auth flow not fully supported in overlay
+  return <LoginScreen navigation={{ navigate } as any} />;
 }
 
 export function AppNavigator() {
