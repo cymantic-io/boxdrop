@@ -32,7 +32,7 @@ backend_build() {
     cd ..
 }
 
-backend_run() {
+backend_start() {
     print_header "Running Backend"
     cd backend
     ./gradlew run
@@ -256,14 +256,8 @@ case "${1:-help}" in
     backend:build)
         backend_build
         ;;
-    backend:run)
-        backend_run
-        ;;
-    backend:test)
-        backend_test
-        ;;
-    backend:quality)
-        backend_quality
+    backend:start)
+        backend_start
         ;;
     backend:stop)
         backend_stop
@@ -313,7 +307,7 @@ USAGE:
 
 BACKEND COMMANDS:
     backend:build       Build the Kotlin backend
-    backend:run         Run the backend server (with debug on 5005)
+    backend:start       Start the backend server (with debug on 5005)
     backend:stop        Stop the backend server
     backend:test        Run backend tests
     backend:quality     Run Detekt code quality checks
