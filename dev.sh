@@ -145,33 +145,14 @@ e2e_test() {
         BACKEND_PID=""
     fi
 
-    # Check if Expo web server is running on port 8081
-    if ! lsof -i ":8081" &>/dev/null; then
-        print_warning "Frontend not running on port 8081, starting it..."
-        cd mobile-web
-        CI=1 npx expo start --web --port 8081 &
-        EXPO_PID=$!
-        print_header "Expo web started with PID: $EXPO_PID"
-        sleep 10  # Wait for Expo to start
-        cd ..
-    else
-        print_header "Frontend already running on port 8081"
-        EXPO_PID=""
-    fi
-
-    # Run E2E tests
+    # Run E2E tests (Playwright will manage frontend startup via webServer config)
     cd tests/e2e
     npm ci
-    npm run test 2>&1
+    npx playwright test 2>&1
     E2E_EXIT_CODE=$?
     cd ../..
 
-    # Clean up services we started
-    if [ -n "$EXPO_PID" ]; then
-        print_header "Stopping Expo web server (PID: $EXPO_PID)"
-        kill $EXPO_PID 2>/dev/null || true
-    fi
-
+    # Clean up backend if we started it
     if [ -n "$BACKEND_PID" ]; then
         print_header "Stopping backend (PID: $BACKEND_PID)"
         kill $BACKEND_PID 2>/dev/null || true
