@@ -58,10 +58,23 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const loadStoredTokens = useAuthStore((state) => state.loadStoredTokens);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
 
   useEffect(() => {
     loadStoredTokens();
   }, []);
+
+  // Handle navigation when auth state changes
+  useEffect(() => {
+    if (navigationRef.isReady()) {
+      const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: targetRoute }],
+      });
+    }
+  }, [showAuthPrompt, isAuthenticated]);
 
   return (
     <SafeAreaProvider>
