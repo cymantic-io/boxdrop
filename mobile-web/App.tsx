@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
@@ -58,49 +58,10 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const loadStoredTokens = useAuthStore((state) => state.loadStoredTokens);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
-  const prevStateRef = React.useRef<{ isAuthenticated: boolean; showAuthPrompt: boolean }>({
-    isAuthenticated: true,
-    showAuthPrompt: false,
-  });
-  const navigationTimeoutRef = React.useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     loadStoredTokens();
   }, []);
-
-  // Handle navigation when auth state changes
-  useEffect(() => {
-    const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
-    const prevRoute = prevStateRef.current.showAuthPrompt || !prevStateRef.current.isAuthenticated ? 'Auth' : 'Main';
-
-    // Only navigate if the target route changed
-    if (targetRoute !== prevRoute) {
-      // Clear any pending navigation
-      if (navigationTimeoutRef.current) {
-        clearTimeout(navigationTimeoutRef.current);
-      }
-
-      // Set a timeout to ensure navigation is ready
-      navigationTimeoutRef.current = setTimeout(() => {
-        if (navigationRef.isReady()) {
-          navigationRef.reset({
-            index: 0,
-            routes: [{ name: targetRoute }],
-          });
-        }
-      }, 100);
-    }
-
-    prevStateRef.current = { isAuthenticated, showAuthPrompt };
-
-    return () => {
-      if (navigationTimeoutRef.current) {
-        clearTimeout(navigationTimeoutRef.current);
-      }
-    };
-  }, [showAuthPrompt, isAuthenticated]);
 
   return (
     <SafeAreaProvider>

@@ -240,9 +240,6 @@ function MainTabs() {
   );
 }
 
-// --- Root Navigator ---
-const RootStack = createNativeStackNavigator();
-
 export function AppNavigator() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -252,19 +249,14 @@ export function AppNavigator() {
     return <View style={{ flex: 1, backgroundColor: colors.white }} />;
   }
 
-  // Determine which screen to show - both screens exist in the navigator
-  // so we can switch between them without remounting
-  const initialRouteName = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
-
-  // Always render the same navigator structure with both screens
-  // This prevents the "fewer hooks than expected" error from early returns
   return (
-    <RootStack.Navigator
-      screenOptions={{ headerShown: false }}
-      initialRouteName={initialRouteName}
-    >
-      <RootStack.Screen name="Auth" component={AuthStack} />
-      <RootStack.Screen name="Main" component={MainTabs} />
-    </RootStack.Navigator>
+    <View style={{ flex: 1 }}>
+      <MainTabs />
+      {showAuthPrompt && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]}>
+          <AuthStack />
+        </View>
+      )}
+    </View>
   );
 }
