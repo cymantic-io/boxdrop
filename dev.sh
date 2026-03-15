@@ -59,21 +59,32 @@ backend_stop() {
     # Try to kill Gradle processes running the app
     if pkill -f "gradlew.*run" 2>/dev/null; then
         print_header "Killed Gradle run process"
-        return 0
     fi
 
-    # Try killing by port
+    # Try killing by port 8080
     if lsof -i ":8080" &>/dev/null; then
         local pid=$(lsof -t -i ":8080")
         if [ -n "$pid" ]; then
             kill -9 "$pid" 2>/dev/null && {
                 print_header "Killed process on port 8080 (PID: $pid)"
-                return 0
             }
         fi
     fi
 
-    print_warning "No running backend server found"
+    # Try killing by port 8081 (frontend)
+    if lsof -i ":8081" &>/dev/null; then
+        local pid=$(lsof -t -i ":8081")
+        if [ -n "$pid" ]; then
+            kill -9 "$pid" 2>/dev/null && {
+                print_header "Killed process on port 8081 (PID: $pid)"
+            }
+        fi
+    fi
+
+    # Kill Expo processes
+    pkill -f "expo" 2>/dev/null && print_header "Killed Expo processes"
+
+    print_warning "Stopped all services"
     return 0
 }
 
@@ -308,7 +319,7 @@ USAGE:
 BACKEND COMMANDS:
     backend:build       Build the Kotlin backend
     backend:start       Start the backend server (with debug on 5005)
-    backend:stop        Stop the backend server
+    backend:stop       Stop the backend and frontend servers
     backend:test        Run backend tests
     backend:quality     Run Detekt code quality checks
 
