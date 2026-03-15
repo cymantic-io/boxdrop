@@ -60,6 +60,7 @@ export default function App() {
   const loadStoredTokens = useAuthStore((state) => state.loadStoredTokens);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
+  const [navigationReady, setNavigationReady] = React.useState(false);
 
   useEffect(() => {
     loadStoredTokens();
@@ -67,20 +68,29 @@ export default function App() {
 
   // Handle navigation when auth state changes
   useEffect(() => {
-    if (navigationRef.isReady()) {
-      const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
-      navigationRef.reset({
-        index: 0,
-        routes: [{ name: targetRoute }],
-      });
-    }
-  }, [showAuthPrompt, isAuthenticated]);
+    // Add a small delay to ensure navigation is ready
+    const timer = setTimeout(() => {
+      if (navigationReady && navigationRef.isReady()) {
+        const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+        navigationRef.reset({
+          index: 0,
+          routes: [{ name: targetRoute }],
+        });
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [showAuthPrompt, isAuthenticated, navigationReady]);
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={paperTheme}>
-          <NavigationContainer linking={linking} ref={navigationRef}>
+          <NavigationContainer
+            linking={linking}
+            ref={navigationRef}
+            onReady={() => setNavigationReady(true)}
+          >
             <StatusBar style="light" />
             <AppNavigator />
             <FunPopupContainer />
