@@ -71,20 +71,7 @@ backend_stop() {
         fi
     fi
 
-    # Try killing by port 8081 (frontend)
-    if lsof -i ":8081" &>/dev/null; then
-        local pid=$(lsof -t -i ":8081")
-        if [ -n "$pid" ]; then
-            kill -9 "$pid" 2>/dev/null && {
-                print_header "Killed process on port 8081 (PID: $pid)"
-            }
-        fi
-    fi
-
-    # Kill Expo processes
-    pkill -f "expo" 2>/dev/null && print_header "Killed Expo processes"
-
-    print_warning "Stopped all services"
+    print_warning "Backend stopped"
     return 0
 }
 
@@ -318,8 +305,8 @@ USAGE:
 
 BACKEND COMMANDS:
     backend:build       Build the Kotlin backend
-    backend:start       Start the backend server (with debug on 5005)
-    backend:stop       Stop the backend and frontend servers
+    backend:start       Start the backend server
+    backend:stop        Stop the backend server
     backend:test        Run backend tests
     backend:quality     Run Detekt code quality checks
 
