@@ -128,6 +128,108 @@ mobile_stop() {
     fi
 }
 
+e2e_test() {
+    print_header "Running E2E Tests"
+
+    # Check if backend is running on port 8080
+    if ! lsof -i ":8080" &>/dev/null; then
+        print_warning "Backend not running on port 8080, starting it..."
+        cd backend
+        ./gradlew run &
+        BACKEND_PID=$!
+        print_header "Backend started with PID: $BACKEND_PID"
+        sleep 15  # Wait for backend to start
+        cd ..
+    else
+        print_header "Backend already running on port 8080"
+        BACKEND_PID=""
+    fi
+
+    # Check if Expo web server is running on port 8081
+    if ! lsof -i ":8081" &>/dev/null; then
+        print_warning "Frontend not running on port 8081, starting it..."
+        cd mobile-web
+        CI=1 npx expo start --web --port 8081 &
+        EXPO_PID=$!
+        print_header "Expo web started with PID: $EXPO_PID"
+        sleep 10  # Wait for Expo to start
+        cd ..
+    else
+        print_header "Frontend already running on port 8081"
+        EXPO_PID=""
+    fi
+
+    # Run E2E tests
+    cd tests/e2e
+    npm ci
+    npm run test 2>&1
+    E2E_EXIT_CODE=$?
+    cd ../..
+
+    # Clean up services we started
+    if [ -n "$EXPO_PID" ]; then
+        print_header "Stopping Expo web server (PID: $EXPO_PID)"
+        kill $EXPO_PID 2>/dev/null || true
+    fi
+
+    if [ -n "$BACKEND_PID" ]; then
+        print_header "Stopping backend (PID: $BACKEND_PID)"
+        kill $BACKEND_PID 2>/dev/null || true
+    fi
+
+    if [ $E2E_EXIT_CODE -eq 0 ]; then
+        print_header "E2E tests passed!"
+    else
+        print_error "E2E tests failed with exit code: $E2E_EXIT_CODE"
+        exit $E2E_EXIT_CODE
+    fi
+}
+
+load_test() {
+    print_header "Running Load Tests"
+
+    # Check if backend is running
+    if ! lsof -i ":8080" &>/dev/null; then
+        print_warning "Backend not running on port 8080, starting it..."
+        cd backend
+        ./gradlew run &
+        BACKEND_PID=$!
+        print_header "Backend started with PID: $BACKEND_PID"
+        sleep 15  # Wait for backend to start
+        cd ..
+    else
+        print_header "Backend already running on port 8080"
+        BACKEND_PID=""
+    fi
+
+    # Check if k6 is available
+    if ! command -v k6 &> /dev/null; then
+        print_error "k6 is not installed. Please install it first:"
+        echo "  https://k6.io/docs/getting-started/installation/"
+        exit 1
+    fi
+
+    # Run load tests
+    print_header "Starting load test..."
+    cd tests/load
+    k6 run api_load_test.js --vus 50 --duration 5m
+    LOAD_EXIT_CODE=$?
+    cd ../..
+
+    # Clean up backend if we started it
+    if [ -n "$BACKEND_PID" ]; then
+        print_header "Stopping backend (PID: $BACKEND_PID)"
+        kill $BACKEND_PID 2>/dev/null || true
+    fi
+
+    if [ $LOAD_EXIT_CODE -eq 0 ]; then
+        print_header "Load tests completed!"
+    else
+        print_error "Load tests failed with exit code: $LOAD_EXIT_CODE"
+        exit $LOAD_EXIT_CODE
+    fi
+}
+
 docker_up() {
     print_header "Starting Docker Services"
     docker-compose up
@@ -179,6 +281,12 @@ case "${1:-help}" in
     mobile:stop)
         mobile_stop
         ;;
+    e2e:test)
+        e2e_test
+        ;;
+    load:test)
+        load_test
+        ;;
     docker:up)
         docker_up
         ;;
@@ -209,6 +317,10 @@ MOBILE COMMANDS:
     mobile:ios          Run on iOS simulator
     mobile:web          Run on web browser
     mobile:test         Run Jest tests
+
+TESTING COMMANDS:
+    e2e:test            Run E2E tests (starts backend & frontend as needed)
+    load:test           Run load tests with k6 (requires k6 installed)
 
 DOCKER COMMANDS:
     docker:up           Start Docker containers
