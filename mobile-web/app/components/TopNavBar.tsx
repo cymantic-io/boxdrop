@@ -68,6 +68,7 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
                 key={item.key}
                 style={[styles.navLink, isActive && styles.navLinkActive]}
                 onPress={() => handleNavPress(item.key)}
+                testID={`nav-${item.key}`}
               >
                 <MaterialCommunityIcons
                   name={item.icon as any}
@@ -94,10 +95,7 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.darkSurface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
     elevation: 8,
   },
   inner: {

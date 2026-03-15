@@ -10,10 +10,11 @@ export const savedKeys = {
   list: () => [...savedKeys.all, 'list'] as const,
 };
 
-export function useSavedListings() {
+export function useSavedListings(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: savedKeys.list(),
     queryFn: getSavedListings,
+    enabled: options?.enabled !== undefined ? options.enabled : true,
     staleTime: 30 * 1000,
   });
 }

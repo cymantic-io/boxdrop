@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
@@ -7,6 +7,20 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './app/navigation/AppNavigator';
 import { useAuthStore } from './app/stores/useAuthStore';
 import { paperTheme } from './app/theme';
+import { FunPopupContainer } from './app/components/FunPopup';
+
+export const navigationRef = createNavigationContainerRef();
+
+if (typeof window !== 'undefined') {
+  const originalWarn = console.warn;
+  console.warn = (...args: any[]) => {
+    const message = args[0]?.toString() ?? '';
+    if (message.includes('shadow') || message.includes('pointerEvents') || message.includes('useNativeDriver')) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
 
 const linking: any = {
   prefixes: ['http://localhost:8081'],
@@ -53,9 +67,10 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={paperTheme}>
-          <NavigationContainer linking={linking}>
+          <NavigationContainer linking={linking} ref={navigationRef}>
             <StatusBar style="light" />
             <AppNavigator />
+            <FunPopupContainer />
           </NavigationContainer>
         </PaperProvider>
       </QueryClientProvider>

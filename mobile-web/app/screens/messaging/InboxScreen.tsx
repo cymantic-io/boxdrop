@@ -11,12 +11,22 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useThreads } from '../../hooks';
 import { colors } from '../../theme';
+import { useAuthStore } from '../../stores/useAuthStore';
 import type { MessageThread, MessagesStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Inbox'>;
 
 export function InboxScreen({ navigation }: Props) {
-  const { data: threads, isLoading, isError, error, refetch } = useThreads();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true, 'MessagesTab');
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
+  const { data: threads, isLoading, isError, error, refetch } = useThreads({ enabled: isAuthenticated });
 
   const formatTime = useCallback((dateString: string) => {
     const date = new Date(dateString);

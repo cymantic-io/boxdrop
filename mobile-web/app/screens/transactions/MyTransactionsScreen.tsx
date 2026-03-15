@@ -11,7 +11,9 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTransactions } from '../../hooks';
 import { colors } from '../../theme';
+import { LoadingScreen } from '../../components';
 import type { Transaction, ProfileStackParamList } from '../../types';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 const STATUS_COLORS: Record<string, string> = {
   CLAIMED: colors.primary,
@@ -26,7 +28,20 @@ const STATUS_COLORS: Record<string, string> = {
 type Props = NativeStackScreenProps<ProfileStackParamList, 'MyTransactions'>;
 
 export function MyTransactionsScreen({ navigation }: Props) {
-  const { data: transactions, isLoading, isError, error, refetch } = useTransactions();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
+  const { data: transactions, isLoading, isError, error, refetch } = useTransactions({ enabled: isAuthenticated });
+
+  if (!isAuthenticated) {
+    return <LoadingScreen />;
+  }
 
   const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
@@ -143,10 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     elevation: 2,
   },
   cardHeader: {

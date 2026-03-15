@@ -12,18 +12,32 @@ import { WebContentWrapper } from '../../components/WebContentWrapper';
 import { useSavedListings, useUnsaveListing } from '../../hooks';
 import { colors } from '../../theme';
 import { ProfileStackParamList } from '../../types';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Saved'>;
 
 export function SavedScreen({ navigation }: Props) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
   const {
     data: savedListings,
     isLoading,
     refetch,
     isRefetching,
-  } = useSavedListings();
+  } = useSavedListings({ enabled: isAuthenticated });
 
   const { mutate: unsave } = useUnsaveListing();
+
+  if (!isAuthenticated) {
+    return <LoadingScreen />;
+  }
 
   const handleListingPress = useCallback(
     (listingId: string) => {

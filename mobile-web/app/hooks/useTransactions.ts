@@ -15,10 +15,11 @@ export const transactionKeys = {
   detail: (id: string) => [...transactionKeys.all, 'detail', id] as const,
 };
 
-export function useTransactions() {
+export function useTransactions(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: transactionKeys.list(),
     queryFn: getTransactions,
+    enabled: options?.enabled !== undefined ? options.enabled : true,
     staleTime: 30 * 1000,
   });
 }

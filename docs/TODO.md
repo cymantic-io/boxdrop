@@ -1,6 +1,55 @@
 # BoxDrop — Launch Checklist
 
-## Deployment Infrastructure
+## Web-First Feature Development
+
+### Authentication (✅ Implemented)
+
+- [x] **TOTP** — Authenticator app support via googleauth library
+- [x] **Email OTP** — Via Resend API
+- [x] **SMS OTP** — Via Twilio API
+- [x] **Frontend method picker** — Users can select auth method at login
+- [x] **Security settings** — View/remove/add verification methods
+- [x] **Guest access** — Explore page works without login; require auth for claim/offer/message
+- [x] **Refresh persistence** — Refresh should reload current page, not navigate to Explore
+
+### Input Validation & Safety
+
+- [x] Add field validations on frontend (ensure entries are sane, valid formats)
+- [x] Add field validations on backend (enforce constraints, sanitize inputs)
+- [x] Validate field sizes match database column constraints
+- [x] Add length limits to text inputs with clear user feedback
+
+### Button State Management
+
+- [x] Disable buttons after press to prevent double-clicks
+- [x] Show loading state during async operations
+- [x] Re-enable buttons after response (success or error)
+- [x] Apply to all submit/action buttons across the app
+
+### User Experience
+
+- [x] Add fun error popups with friendly messages and animations for unexpected errors
+
+### Security Hardening (OWASP Top 10)
+
+- [ ] **A01: Broken Access Control** — Verify user can only access/modify their own data
+- [ ] **A02: Cryptographic Failures** — Ensure proper encryption of sensitive data at rest and in transit
+- [ ] **A03: Injection** — Validate and sanitize all user inputs, use parameterized queries
+- [ ] **A04: Insecure Design** — Review for security gaps in application logic
+- [ ] **A05: Security Misconfiguration** — Hardening for production (disable debug, set secure headers)
+- [ ] **A06: Vulnerable Components** — Audit dependencies for known CVEs
+- [ ] **A07: Auth Failures** — Review rate limiting, token expiration, session management
+- [ ] **A08: Data Integrity Failures** — Validate all data integrity (e.g., price calculations on backend)
+- [ ] **A09: Logging Failures** — Ensure security events are logged without sensitive data
+- [ ] **A10: SSRF** — Validate all URLs/URIs don't allow internal network access
+
+### Server Resilience
+
+- [ ] Add server-side rate limiting (Redis-backed, per-IP and per-user)
+- [ ] Implement circuit breaker for PostgreSQL connections
+- [ ] Implement circuit breaker for Redis connections
+
+## Web Deployment
 
 ### Recommended Stack (Cheapest: ~$5-10/mo)
 

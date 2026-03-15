@@ -16,6 +16,7 @@ import { PhotoCarousel, ClaimButton } from '../../components';
 import { WebContentWrapper } from '../../components/WebContentWrapper';
 import type { HomeStackParamList } from '../../types';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { showError } from '../../components';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'ListingDetail'>;
 
@@ -28,6 +29,7 @@ function getPriceColor(current: number, starting: number): string {
 
 export function ListingDetailScreen({ route, navigation }: Props) {
   const { listingId } = route.params;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const userId = useAuthStore((s) => s.userId);
   const { data: listing, isLoading, isError } = useListing(listingId);
   const { data: sale } = useSale(listing?.saleId);
@@ -39,6 +41,14 @@ export function ListingDetailScreen({ route, navigation }: Props) {
   const [offerAmount, setOfferAmount] = useState('');
   const { mutate: makeOffer, isPending: offerPending } = useCreateOffer();
   const { mutate: createThread, isPending: threadPending } = useCreateThread();
+
+  const requireAuth = (action: () => void) => {
+    if (!isAuthenticated) {
+      useAuthStore.getState().setShowAuthPrompt(true);
+      return;
+    }
+    action();
+  };
 
   if (isLoading) {
     return (
@@ -125,10 +135,12 @@ export function ListingDetailScreen({ route, navigation }: Props) {
               <ClaimButton
                 price={listing.currentPrice}
                 onPress={() =>
-                  (navigation as any).navigate('Claim', {
-                    listingId: listing.id,
-                    listing,
-                  })
+                  requireAuth(() =>
+                    (navigation as any).navigate('Claim', {
+                      listingId: listing.id,
+                      listing,
+                    })
+                  )
                 }
               />
             </View>
@@ -136,7 +148,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
               <PaperButton
                 mode="outlined"
                 icon="hand-extended"
-                onPress={() => setShowOfferModal(true)}
+                onPress={() => requireAuth(() => setShowOfferModal(true))}
                 style={styles.offerButton}
                 contentStyle={styles.actionButtonContent}
                 textColor={colors.primary}
@@ -149,16 +161,18 @@ export function ListingDetailScreen({ route, navigation }: Props) {
                 mode="outlined"
                 icon="message-question"
                 onPress={() => {
-                  createThread(
-                    { listingId: listing.id, message: '' },
-                    {
-                      onSuccess: (thread) => {
-                        (navigation as any).getParent()?.navigate('MessagesTab', {
-                          screen: 'Chat',
-                          params: { threadId: thread.id, listingTitle: listing.title },
-                        });
-                      },
-                    }
+                  requireAuth(() =>
+                    createThread(
+                      { listingId: listing.id, message: '' },
+                      {
+                        onSuccess: (thread) => {
+                          (navigation as any).getParent()?.navigate('MessagesTab', {
+                            screen: 'Chat',
+                            params: { threadId: thread.id, listingTitle: listing.title },
+                          });
+                        },
+                      }
+                    )
                   );
                 }}
                 loading={threadPending}

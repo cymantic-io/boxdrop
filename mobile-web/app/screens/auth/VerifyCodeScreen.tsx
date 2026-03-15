@@ -64,6 +64,15 @@ export function VerifyCodeScreen({ route }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <View style={styles.closeButtonContainer}>
+        <Button
+          mode="text"
+          onPress={() => useAuthStore.getState().setShowAuthPrompt(false)}
+          labelStyle={styles.closeButton}
+        >
+          ✕
+        </Button>
+      </View>
       <View style={styles.content}>
         <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
         <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
@@ -77,6 +86,8 @@ export function VerifyCodeScreen({ route }: Props) {
           keyboardType="number-pad"
           maxLength={6}
           autoFocus
+          returnKeyType="done"
+          onSubmitEditing={handleVerify}
           value={code}
           onChangeText={setCode}
           error={!!error}
@@ -120,6 +131,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#264653',
+  },
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    zIndex: 100,
+  },
+  closeButton: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 24,
   },
   content: {
     flex: 1,

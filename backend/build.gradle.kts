@@ -26,6 +26,7 @@ micronaut {
 dependencies {
     kapt("io.micronaut.data:micronaut-data-processor")
     kapt("io.micronaut.serde:micronaut-serde-processor")
+    kapt("io.micronaut.validation:micronaut-validation-processor")
 
     implementation("io.micronaut:micronaut-http-server-netty")
     implementation("io.micronaut:micronaut-runtime")
@@ -36,6 +37,7 @@ dependencies {
     implementation("io.micronaut.redis:micronaut-redis-lettuce")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("io.micronaut.validation:micronaut-validation")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("com.auth0:java-jwt:4.4.0")

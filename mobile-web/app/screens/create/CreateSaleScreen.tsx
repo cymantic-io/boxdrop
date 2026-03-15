@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,17 +12,27 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCreateSale, useCurrentUser } from '../../hooks';
 import { colors } from '../../theme';
 import { useLocationStore } from '../../stores/useLocationStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { WebContentWrapper } from '../../components/WebContentWrapper';
 import { DateTimePicker } from '../../components';
+import { showError } from '../../components';
 import type { MySalesStackParamList, CreateSaleRequest } from '../../types';
 
 type Props = NativeStackScreenProps<MySalesStackParamList, 'CreateSale'>;
 
 export function CreateSaleScreen({ navigation, route }: Props) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
   const { latitude, longitude } = useLocationStore();
   const { mutate: createSale, isPending } = useCreateSale();
   const { data: user } = useCurrentUser();
   const params = route.params;
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
 
   const { control, handleSubmit, formState: { errors } } = useForm<CreateSaleRequest>({
     defaultValues: {
@@ -49,7 +58,7 @@ export function CreateSaleScreen({ navigation, route }: Props) {
         navigation.replace('AddListings', { saleId: sale.id, relistItems: params?.relistItems });
       },
       onError: (error) => {
-        Alert.alert('Error', (error as Error).message ?? 'Failed to create sale');
+        showError('Error', (error as Error).message ?? 'Failed to create sale');
       },
     });
   };
@@ -67,7 +76,10 @@ export function CreateSaleScreen({ navigation, route }: Props) {
         <Controller
           control={control}
           name="title"
-          rules={{ required: 'Title is required' }}
+          rules={{
+            required: 'Title is required',
+            maxLength: { value: 200, message: 'Title must be less than 200 characters' },
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               mode="outlined"
@@ -87,6 +99,7 @@ export function CreateSaleScreen({ navigation, route }: Props) {
         <Controller
           control={control}
           name="description"
+          rules={{ maxLength: { value: 2000, message: 'Description must be less than 2000 characters' } }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               mode="outlined"
@@ -98,15 +111,20 @@ export function CreateSaleScreen({ navigation, route }: Props) {
               onBlur={onBlur}
               multiline
               numberOfLines={3}
+              error={!!errors.description}
             />
           )}
         />
+        {errors.description && <HelperText type="error">{errors.description.message}</HelperText>}
 
         <Text variant="labelLarge" style={styles.label}>Address *</Text>
         <Controller
           control={control}
           name="address"
-          rules={{ required: 'Address is required' }}
+          rules={{
+            required: 'Address is required',
+            maxLength: { value: 500, message: 'Address must be less than 500 characters' },
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               mode="outlined"

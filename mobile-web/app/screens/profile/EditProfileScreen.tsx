@@ -2,30 +2,41 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { TextInput as PaperInput, HelperText } from 'react-native-paper';
+import { useForm, Controller } from 'react-hook-form';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCurrentUser, useUpdateProfile } from '../../hooks';
 import { uploadImage } from '../../services/api';
 import { colors } from '../../theme';
+import { showSuccess, showError } from '../../components';
 import type { ProfileStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'EditProfile'>;
+
+interface ProfileFormData {
+  displayName: string;
+  address: string;
+}
 
 export function EditProfileScreen({ navigation }: Props) {
   const { data: user } = useCurrentUser();
   const updateProfile = useUpdateProfile();
 
-  const [displayName, setDisplayName] = useState(user?.displayName ?? '');
-  const [address, setAddress] = useState(user?.address ?? '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? '');
   const [uploading, setUploading] = useState(false);
+
+  const { control, handleSubmit, formState: { errors } } = useForm<ProfileFormData>({
+    defaultValues: {
+      displayName: user?.displayName ?? '',
+      address: user?.address ?? '',
+    },
+  });
 
   const handlePickImage = async () => {
     try {
@@ -51,26 +62,25 @@ export function EditProfileScreen({ navigation }: Props) {
         setAvatarUrl(url);
         setUploading(false);
       }
-    } catch (error: any) {
-      setUploading(false);
-      Alert.alert('Upload Failed', error.message ?? 'Could not upload image.');
-    }
+      } catch (error: any) {
+        showError('Upload Failed', error.message ?? 'Could not upload image.');
+      }
   };
 
-  const handleSave = () => {
+  const handleSave = (data: ProfileFormData) => {
     updateProfile.mutate(
       {
-        displayName: displayName.trim() || undefined,
+        displayName: data.displayName.trim() || undefined,
         avatarUrl: avatarUrl || undefined,
-        address: address.trim() || undefined,
+        address: data.address.trim() || undefined,
       },
       {
         onSuccess: () => {
-          Alert.alert('Success', 'Profile updated.');
+          showSuccess('Profile Updated!', 'Your changes have been saved.');
           navigation.goBack();
         },
         onError: (error: any) => {
-          Alert.alert('Error', error.message ?? 'Failed to update profile.');
+          showError('Oops!', error.message ?? 'Failed to update profile.');
         },
       },
     );
@@ -100,26 +110,53 @@ export function EditProfileScreen({ navigation }: Props) {
       </TouchableOpacity>
 
       <Text style={styles.label}>Display Name</Text>
-      <TextInput
-        style={styles.input}
-        value={displayName}
-        onChangeText={setDisplayName}
-        placeholder="Your name"
+      <Controller
+        control={control}
+        name="displayName"
+        rules={{
+          required: 'Display name is required',
+          maxLength: { value: 100, message: 'Display name must be less than 100 characters' },
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <PaperInput
+            mode="outlined"
+            style={styles.input}
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            placeholder="Your name"
+            error={!!errors.displayName}
+          />
+        )}
       />
+      {errors.displayName && <HelperText type="error">{errors.displayName.message}</HelperText>}
 
       <Text style={styles.label}>Address</Text>
-      <TextInput
-        style={[styles.input, styles.multilineInput]}
-        value={address}
-        onChangeText={setAddress}
-        placeholder="Your address (for pickup directions)"
-        multiline
-        numberOfLines={3}
+      <Controller
+        control={control}
+        name="address"
+        rules={{
+          maxLength: { value: 500, message: 'Address must be less than 500 characters' },
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <PaperInput
+            mode="outlined"
+            style={[styles.input, styles.multilineInput]}
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            placeholder="Your address (for pickup directions)"
+            multiline
+            numberOfLines={3}
+            error={!!errors.address}
+          />
+        )}
       />
+      {errors.address && <HelperText type="error">{errors.address.message}</HelperText>}
 
       <TouchableOpacity
         style={[styles.saveButton, updateProfile.isPending && styles.buttonDisabled]}
-        onPress={handleSave}
+        onPress={handleSubmit(handleSave)}
         disabled={updateProfile.isPending}
         activeOpacity={0.7}
       >
@@ -192,18 +229,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 16,
     backgroundColor: colors.surface,
   },
   multilineInput: {
-    height: 80,
-    paddingTop: 12,
-    textAlignVertical: 'top',
+    minHeight: 80,
   },
   saveButton: {
     backgroundColor: colors.primary,

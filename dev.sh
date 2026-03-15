@@ -95,6 +95,39 @@ mobile_test() {
     cd ..
 }
 
+mobile_stop() {
+    print_header "Stopping Expo Dev Server"
+
+    # Try to kill processes by name first
+    if pkill -f "expo start" 2>/dev/null; then
+        print_header "Killed Expo dev server process"
+        return 0
+    fi
+
+    # If that didn't work, try killing node processes on common Expo ports
+    local ports=(8081 19000 19001)
+    local killed=false
+
+    for port in "${ports[@]}"; do
+        if lsof -i ":$port" &>/dev/null; then
+            local pid=$(lsof -t -i ":$port")
+            if [ -n "$pid" ]; then
+                kill -9 "$pid" 2>/dev/null && {
+                    print_header "Killed process running on port $port (PID: $pid)"
+                    killed=true
+                }
+            fi
+        fi
+    done
+
+    if [ "$killed" = true ]; then
+        return 0
+    else
+        print_warning "No running Expo dev server found"
+        return 0
+    fi
+}
+
 docker_up() {
     print_header "Starting Docker Services"
     docker-compose up
@@ -143,6 +176,9 @@ case "${1:-help}" in
     mobile:test)
         mobile_test
         ;;
+    mobile:stop)
+        mobile_stop
+        ;;
     docker:up)
         docker_up
         ;;
@@ -168,6 +204,7 @@ BACKEND COMMANDS:
 MOBILE COMMANDS:
     mobile:install      Install npm dependencies
     mobile:start        Start Expo dev server (interactive)
+    mobile:stop         Stop Expo dev server
     mobile:android      Run on Android emulator
     mobile:ios          Run on iOS simulator
     mobile:web          Run on web browser

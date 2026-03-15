@@ -367,6 +367,7 @@ export type ProfileStackParamList = {
   Profile: undefined;
   MyTransactions: undefined;
   Saved: undefined;
+  MySales: undefined;
   ListingDetail: { listingId: string };
   EditProfile: undefined;
   SecuritySettings: undefined;

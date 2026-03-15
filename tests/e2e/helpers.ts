@@ -81,15 +81,29 @@ export async function dismissMapPopups(page: Page): Promise<void> {
   });
 }
 
+export async function setTestLocation(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const store = (window as any).__boxdropLocationStore;
+    if (store && store.getState && store.setTestLocation) {
+      store.setTestLocation(37.5597, -90.2940);
+    }
+  });
+  await page.waitForTimeout(200);
+}
+
 export async function navigateToSaleFromHome(page: Page, saleTitle: string): Promise<void> {
   await dismissMapPopups(page);
-  // Scope to the sale list panel (outside the Leaflet map) to avoid
-  // matching popup text. Find the card containing the sale title and
-  // click its "View details →" link to navigate to SaleDetail.
+  await setTestLocation(page);
+  await page.waitForTimeout(3000);
   const listPanel = page.locator('[data-testid="sale-list-panel"]');
+  
+  // Scroll to top to ensure sales load from beginning
+  await listPanel.evaluate((el) => el.scrollTop = 0);
+  await page.waitForTimeout(500);
+  
   await expect(listPanel.getByText(saleTitle).first()).toBeVisible({ timeout: 10000 });
   await listPanel.getByText(saleTitle).first()
-    .locator('..').locator('..').getByText('View details →').click({ timeout: 10000 });
+    .locator('..').locator('..').getByText('View details →').click({ timeout: 5000 });
 }
 
 export async function authenticateInBrowser(page: Page, tokens: AuthTokens): Promise<void> {
@@ -99,7 +113,15 @@ export async function authenticateInBrowser(page: Page, tokens: AuthTokens): Pro
     localStorage.setItem('auth_refresh_token', t.refreshToken);
     localStorage.setItem('auth_user_id', t.userId);
   }, tokens);
-  await page.reload();
+  await page.evaluate(() => {
+    const store = (window as any).__boxdropLocationStore;
+    if (store && store.getState && store.setTestLocation) {
+      store.setTestLocation(37.5597, -90.2940);
+    }
+  });
+  // Navigate to home instead of reload to avoid connection issues
+  await page.goto('/');
+  await page.waitForTimeout(1000);
 }
 
 export async function createSaleViaApi(tokens: AuthTokens, sale: {

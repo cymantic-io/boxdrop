@@ -38,7 +38,10 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
       <Controller
         control={control}
         name="title"
-        rules={{ required: 'Title is required' }}
+        rules={{
+          required: 'Title is required',
+          maxLength: { value: 200, message: 'Title must be less than 200 characters' },
+        }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             mode="outlined"
@@ -76,7 +79,10 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
         <Controller
           control={control}
           name="startingPrice"
-          rules={{ required: 'Price required' }}
+          rules={{
+            required: 'Price required',
+            min: { value: 0.01, message: 'Price must be at least $0.01' },
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               mode="outlined"
@@ -94,6 +100,10 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
         <Controller
           control={control}
           name="minimumPrice"
+          rules={{
+            validate: (val: number | string) => 
+              val === undefined || val === null || val === '' || Number(val) >= 0 || 'Price cannot be negative',
+          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
               mode="outlined"
@@ -103,15 +113,22 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
               onChangeText={onChange}
               onBlur={onBlur}
               keyboardType="decimal-pad"
+              error={!!errors.minimumPrice}
               style={[styles.input, styles.halfInput]}
             />
           )}
         />
       </View>
+      {(errors.startingPrice || errors.minimumPrice) && (
+        <HelperText type="error" visible>
+          {errors.startingPrice?.message || errors.minimumPrice?.message}
+        </HelperText>
+      )}
 
       <Controller
         control={control}
         name="description"
+        rules={{ maxLength: { value: 2000, message: 'Description must be less than 2000 characters' } }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             mode="outlined"
@@ -121,10 +138,12 @@ export const DraftItemForm: React.FC<DraftItemFormProps> = ({ onSubmit, loading 
             onBlur={onBlur}
             multiline
             numberOfLines={2}
+            error={!!errors.description}
             style={[styles.input, styles.multiline]}
           />
         )}
       />
+      {errors.description && <HelperText type="error">{errors.description.message}</HelperText>}
 
       <Button
         mode="contained"

@@ -1,30 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
+import { Portal, Dialog, Button } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useNavigationStore } from '../../stores/useNavigationStore';
 import { colors } from '../../theme';
 import type { ProfileStackParamList } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Settings'>;
 
 export function SettingsScreen({ navigation }: Props) {
+  const [visible, setVisible] = useState(false);
   const logout = useAuthStore((s) => s.logout);
+  const setNavigationState = useNavigationStore((s) => s.setNavigationState);
 
-  const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: () => logout(),
-      },
-    ]);
+  const showDialog = () => setVisible(true);
+  const hideDialog = () => setVisible(false);
+
+  const handleLogout = async () => {
+    hideDialog();
+    await logout();
   };
 
   return (
@@ -42,13 +42,27 @@ export function SettingsScreen({ navigation }: Props) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={handleLogout}
+            onPress={showDialog}
             activeOpacity={0.6}
+            testID="logout-menu-button"
           >
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      <Portal>
+        <Dialog visible={visible} onDismiss={hideDialog}>
+          <Dialog.Title>Log Out</Dialog.Title>
+          <Dialog.Content>
+            <Text>Are you sure you want to log out?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={hideDialog}>Cancel</Button>
+            <Button onPress={handleLogout} testID="logout-confirm-button">Log Out</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <View style={styles.footer}>
         <Text style={styles.versionText}>BoxDrop v1.0.0</Text>

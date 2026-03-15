@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View,
-  StyleSheet,
+  Image,
   KeyboardAvoidingView,
   Platform,
-  Image,
+  StyleSheet,
+  View,
 } from 'react-native';
-import { TextInput, Button, Text, HelperText } from 'react-native-paper';
+import { Button, Text, HelperText, TextInput } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../types';
-import { loginStart, loginSendCode } from '../../services/api';
+import { loginSendCode, loginStart } from '../../services/api';
+import { colors } from '../../theme';
+import type { AuthStackParamList } from '../../types';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -65,6 +67,15 @@ export function LoginScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <View style={styles.closeButtonContainer}>
+        <Button
+          mode="text"
+          onPress={() => useAuthStore.getState().setShowAuthPrompt(false)}
+          labelStyle={styles.closeButton}
+        >
+          ✕
+        </Button>
+      </View>
       <View style={styles.content}>
         <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
         <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
@@ -87,6 +98,8 @@ export function LoginScreen({ navigation }: Props) {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              returnKeyType="go"
+              onSubmitEditing={handleSubmit(onSubmit)}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -131,6 +144,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#264653',
+  },
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    zIndex: 100,
+  },
+  closeButton: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 24,
   },
   content: {
     flex: 1,

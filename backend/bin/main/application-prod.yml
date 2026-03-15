@@ -1,0 +1,7 @@
+micronaut:
+  server:
+    cors:
+      configurations:
+        web:
+          allowed-origins:
+            - https://boxdrop.me

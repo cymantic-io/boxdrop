@@ -10,11 +10,25 @@ import { useMySales } from '../../hooks';
 import { colors } from '../../theme';
 import { SaleCard, EmptyState, LoadingScreen } from '../../components';
 import type { ProfileStackParamList } from '../../types';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'MySales'>;
 
 export function MySalesScreen({ navigation }: Props) {
-  const { data: sales, isLoading, refetch, isRefetching } = useMySales();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
+  const { data: sales, isLoading, refetch, isRefetching } = useMySales({ enabled: isAuthenticated });
+
+  if (!isAuthenticated) {
+    return <LoadingScreen />;
+  }
 
   if (isLoading && !isRefetching) {
     return <LoadingScreen />;

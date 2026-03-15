@@ -48,13 +48,13 @@ test.describe('Listings', () => {
 
   test('listing detail shows all information', async ({ page }) => {
     await authenticateInBrowser(page, buyerTokens);
-    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
     await navigateToSaleFromHome(page, 'Listing Detail Test Sale');
-    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 5000 });
     await page.getByText('Detail Test Item').first().click();
 
-    await expect(page.getByText('Detail Test Item').last()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Detail Test Item').last()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('$99.99').last()).toBeVisible();
     await expect(page.getByText('Electronics').last()).toBeVisible();
     await expect(page.getByText('LIKE NEW').last()).toBeVisible();
@@ -64,28 +64,28 @@ test.describe('Listings', () => {
 
   test('listing shows no photos placeholder when no images', async ({ page }) => {
     await authenticateInBrowser(page, buyerTokens);
-    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
     await navigateToSaleFromHome(page, 'Listing Detail Test Sale');
-    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 5000 });
     await page.getByText('Detail Test Item').first().click();
 
-    await expect(page.getByText('No Photos')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('No Photos')).toBeVisible({ timeout: 5000 });
   });
 
   test('listing save button toggles between Save and Saved', async ({ page }) => {
     await authenticateInBrowser(page, buyerTokens);
-    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
     await navigateToSaleFromHome(page, 'Listing Detail Test Sale');
-    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Detail Test Item').first()).toBeVisible({ timeout: 5000 });
     await page.getByText('Detail Test Item').first().click();
-    await expect(page.getByText('$99.99').last()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('$99.99').last()).toBeVisible({ timeout: 5000 });
 
     await page.getByRole('button', { name: 'Save' }).click();
-    await expect(page.getByRole('button', { name: 'Saved' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'Saved' })).toBeVisible({ timeout: 5000 });
 
     await page.getByRole('button', { name: 'Saved' }).click();
-    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible({ timeout: 5000 });
   });
 });

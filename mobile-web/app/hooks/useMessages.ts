@@ -8,10 +8,11 @@ export const messageKeys = {
   detail: (threadId: string) => [...messageKeys.all, 'detail', threadId] as const,
 };
 
-export function useThreads() {
+export function useThreads(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: messageKeys.list(),
     queryFn: getThreads,
+    enabled: options?.enabled !== undefined ? options.enabled : true,
     staleTime: 30 * 1000,
   });
 }

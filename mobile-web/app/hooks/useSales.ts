@@ -19,10 +19,11 @@ export const saleKeys = {
     [...saleKeys.all, 'nearby', lat, lng, radiusKm] as const,
 };
 
-export function useMySales() {
+export function useMySales(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: saleKeys.lists(),
     queryFn: getSales,
+    enabled: options?.enabled !== undefined ? options.enabled : true,
     staleTime: 30 * 1000,
   });
 }

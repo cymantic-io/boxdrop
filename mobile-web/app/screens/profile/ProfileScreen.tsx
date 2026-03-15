@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Avatar, Card, Text, List, Divider, ActivityIndicator } from 'react-native-paper';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Avatar, Card, Text, List, Divider, ActivityIndicator, Portal, Dialog, Button } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCurrentUser } from '../../hooks';
 import { colors } from '../../theme';
+import { LoadingScreen } from '../../components';
 import { WebContentWrapper } from '../../components/WebContentWrapper';
 import type { ProfileStackParamList } from '../../types';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -23,7 +25,30 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 export function ProfileScreen({ navigation }: Props) {
+  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const logout = useAuthStore((s) => s.logout);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  const showLogoutDialog = () => setLogoutDialogVisible(true);
+  const hideLogoutDialog = () => setLogoutDialogVisible(false);
+
+  const handleLogout = async () => {
+    hideLogoutDialog();
+    await logout();
+  };
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true, 'ProfileTab');
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
   const { data: user, isLoading, isError, error } = useCurrentUser();
+
+  if (!isAuthenticated) {
+    return <LoadingScreen />;
+  }
 
   if (isLoading) {
     return (
@@ -94,6 +119,30 @@ export function ProfileScreen({ navigation }: Props) {
           </React.Fragment>
         ))}
       </Card>
+
+      <Card style={styles.logoutCard} mode="outlined">
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={showLogoutDialog}
+          activeOpacity={0.6}
+          testID="logout-menu-button"
+        >
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </Card>
+
+      <Portal>
+        <Dialog visible={logoutDialogVisible} onDismiss={hideLogoutDialog}>
+          <Dialog.Title>Log Out</Dialog.Title>
+          <Dialog.Content>
+            <Text>Are you sure you want to log out?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={hideLogoutDialog}>Cancel</Button>
+            <Button onPress={handleLogout} testID="logout-confirm-button">Log Out</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
       </WebContentWrapper>
     </ScrollView>
   );
@@ -170,6 +219,21 @@ const styles = StyleSheet.create({
   },
   divider: {
     backgroundColor: colors.borderLight,
+  },
+  logoutCard: {
+    marginTop: 16,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  logoutButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#DC2626',
   },
   errorText: {
     color: colors.error,

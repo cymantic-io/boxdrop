@@ -12,6 +12,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
 import { register } from '../../services/api';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -55,6 +56,15 @@ export function RegisterScreen({ navigation }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <View style={styles.closeButtonContainer}>
+        <Button
+          mode="text"
+          onPress={() => useAuthStore.getState().setShowAuthPrompt(false)}
+          labelStyle={styles.closeButton}
+        >
+          ✕
+        </Button>
+      </View>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -147,6 +157,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#264653',
+  },
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    zIndex: 100,
+  },
+  closeButton: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 24,
   },
   content: {
     flexGrow: 1,

@@ -1,9 +1,11 @@
-import React from 'react';
-import { Platform, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Platform, View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '../stores/useAuthStore';
+import { useNavigationStore } from '../stores/useNavigationStore';
 import { colors } from '../theme';
 import { TopNavBar } from '../components/TopNavBar';
 import type {
@@ -60,13 +62,27 @@ const webRootScreenOptions = isWeb ? { headerShown: false } as const : {};
 const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
 
 function AuthStack() {
-  return (
+  const authContent = (
     <AuthStackNav.Navigator screenOptions={defaultStackScreenOptions}>
       <AuthStackNav.Screen name="Login" component={LoginScreen} options={webRootScreenOptions} />
       <AuthStackNav.Screen name="Register" component={RegisterScreen} />
       <AuthStackNav.Screen name="VerifyCode" component={VerifyCodeScreen} options={{ title: 'Verify Code' }} />
       <AuthStackNav.Screen name="MethodPicker" component={MethodPickerScreen} options={{ title: 'Choose Method' }} />
     </AuthStackNav.Navigator>
+  );
+
+  if (isWeb) {
+    return (
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]}>
+        {authContent}
+      </View>
+    );
+  }
+
+  return (
+    <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
+      {authContent}
+    </BlurView>
   );
 }
 
@@ -134,8 +150,37 @@ function ProfileStack() {
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const loadNavigationState = useNavigationStore((state) => state.loadNavigationState);
+  const currentTab = useNavigationStore((state) => state.currentTab);
+  const setNavigationState = useNavigationStore((state) => state.setNavigationState);
+  const [initialTab, setInitialTab] = React.useState<string | undefined>('HomeTab');
+  const [forceReset, setForceReset] = React.useState(0);
+
+  useEffect(() => {
+    loadNavigationState().then((state) => {
+      if (state?.tab) {
+        setInitialTab(state.tab);
+      }
+    });
+  }, [loadNavigationState]);
+
+  const handleTabChange = (tab: string) => {
+    setNavigationState(tab, null, null);
+  };
+
   return (
     <Tab.Navigator
+      key={forceReset}
+      initialRouteName={initialTab}
+      screenListeners={({ navigation }) => ({
+        state: (e: any) => {
+          const index = e.state?.index;
+          const tabName = e.state?.routeNames?.[index];
+          if (tabName && tabName !== currentTab) {
+            handleTabChange(tabName);
+          }
+        },
+      })}
       layout={isWeb ? ({ children, state, navigation, descriptors }: any) => (
         <View style={{ flex: 1 }}>
           <TopNavBar state={state} navigation={navigation} descriptors={descriptors} />
@@ -151,10 +196,7 @@ function MainTabs() {
               borderTopColor: colors.borderLight,
               borderTopWidth: 1,
               elevation: 8,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
+              boxShadow: '0 -2px 8px rgba(0,0,0,0.06)',
               height: 56,
               paddingBottom: 6,
             },
@@ -203,14 +245,41 @@ const RootStack = createNativeStackNavigator();
 
 export function AppNavigator() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
+  const navigationRef = React.useRef<any>(null);
 
+  if (isLoading) {
+    return <View style={{ flex: 1, backgroundColor: colors.white }} />;
+  }
+
+  // Determine which screen to show - both screens exist in the navigator
+  // so we can switch between them without remounting
+  const initialRouteName = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+
+  // Always render the same navigator structure with both screens
+  // This prevents the "fewer hooks than expected" error from early returns
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {isAuthenticated ? (
-        <RootStack.Screen name="Main" component={MainTabs} />
-      ) : (
-        <RootStack.Screen name="Auth" component={AuthStack} />
-      )}
+    <RootStack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={initialRouteName}
+      screenListeners={({ navigation }) => ({
+        // Handle auth state changes by using navigation prop
+        state: () => {
+          if (navigationRef.current?.isReady?.()) {
+            const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+            try {
+              (navigation as any).reset?.({
+                index: 0,
+                routes: [{ name: targetRoute }],
+              });
+            } catch (e) {}
+          }
+        },
+      })}
+    >
+      <RootStack.Screen name="Auth" component={AuthStack} />
+      <RootStack.Screen name="Main" component={MainTabs} />
     </RootStack.Navigator>
   );
 }

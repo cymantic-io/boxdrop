@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { useNavigationStore } from './useNavigationStore';
 import { setAuthToken } from '../services/api';
 import type { User } from '../types';
 
@@ -39,11 +40,14 @@ interface AuthState {
   userId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  showAuthPrompt: boolean;
+  authRedirectRoute: string | null;
   login: (challengeId: string, method: string, code: string) => Promise<void>;
   register: (challengeId: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   setTokens: (accessToken: string, refreshToken: string, userId: string) => void;
   loadStoredTokens: () => Promise<void>;
+  setShowAuthPrompt: (show: boolean, redirectRoute?: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -53,13 +57,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   isAuthenticated: false,
   isLoading: true,
+  showAuthPrompt: false,
+  authRedirectRoute: null,
+
+  setShowAuthPrompt: (show, redirectRoute) => set({ showAuthPrompt: show, authRedirectRoute: show ? redirectRoute ?? null : null }),
 
   setTokens: (accessToken, refreshToken, userId) => {
     setAuthToken(accessToken);
     storage.setItem(TOKEN_KEY, accessToken);
     storage.setItem(REFRESH_KEY, refreshToken);
     storage.setItem(USER_ID_KEY, userId);
-    set({ accessToken, refreshToken, userId, isAuthenticated: true });
+    const redirectRoute = get().authRedirectRoute;
+    set({ accessToken, refreshToken, userId, isAuthenticated: true, showAuthPrompt: false, authRedirectRoute: null });
+    
+    // Navigate to redirect route if set
+    if (redirectRoute) {
+      setTimeout(() => {
+        try {
+          const { navigationRef } = require('../../App');
+          if (navigationRef?.current?.navigate) {
+            navigationRef.current.navigate(redirectRoute);
+          }
+        } catch (e) {}
+      }, 100);
+    }
   },
 
   login: async (challengeId, method, code) => {
@@ -79,6 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await storage.deleteItem(TOKEN_KEY);
     await storage.deleteItem(REFRESH_KEY);
     await storage.deleteItem(USER_ID_KEY);
+    useNavigationStore.getState().clearNavigationState();
     set({
       user: null,
       accessToken: null,
@@ -86,7 +108,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       userId: null,
       isAuthenticated: false,
       isLoading: false,
+      showAuthPrompt: false,
+      authRedirectRoute: null,
     });
+    
+    // Navigate to HomeTab after logout
+    try {
+      const { navigationRef } = require('../../App');
+      if (navigationRef?.current?.navigate) {
+        navigationRef.current.navigate('Main', { screen: 'HomeTab' });
+      }
+    } catch (e) {
+      console.warn('Failed to navigate after logout', e);
+    }
   },
 
   loadStoredTokens: async () => {

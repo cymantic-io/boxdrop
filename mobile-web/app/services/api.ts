@@ -86,6 +86,7 @@ api.interceptors.response.use(
     const { refreshToken: storedRefreshToken, logout } = useAuthStore.getState();
 
     if (!storedRefreshToken) {
+      useAuthStore.getState().setShowAuthPrompt(true);
       logout();
       return Promise.reject(error);
     }
@@ -110,6 +111,7 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
+      useAuthStore.getState().setShowAuthPrompt(true);
       logout();
       return Promise.reject(refreshError);
     } finally {

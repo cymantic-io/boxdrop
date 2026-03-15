@@ -13,6 +13,7 @@ import { SaleCard, EmptyState, LoadingScreen } from '../../components';
 import { WebContentWrapper } from '../../components/WebContentWrapper';
 import { useMySales } from '../../hooks';
 import { colors } from '../../theme';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { MySalesStackParamList, Sale } from '../../types';
 
 type Props = NativeStackScreenProps<MySalesStackParamList, 'MySalesList'>;
@@ -60,8 +61,21 @@ function categorizeSales(sales: Sale[]) {
 }
 
 export function MySalesScreen({ navigation }: Props) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setShowAuthPrompt = useAuthStore((s) => s.setShowAuthPrompt);
+
+  React.useLayoutEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true, 'MySalesTab');
+    }
+  }, [isAuthenticated, setShowAuthPrompt]);
+
   const [selectedCategory, setSelectedCategory] = useState<Category>('active');
-  const { data: sales, isLoading, refetch, isRefetching } = useMySales();
+  const { data: sales, isLoading, refetch, isRefetching } = useMySales({ enabled: isAuthenticated });
+
+  if (!isAuthenticated) {
+    return <LoadingScreen />;
+  }
 
   const groups = useMemo(() => categorizeSales(sales ?? []), [sales]);
   const currentSales = groups[selectedCategory];

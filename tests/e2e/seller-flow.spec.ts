@@ -93,7 +93,8 @@ test.describe('Seller Flow', () => {
     });
     await page.reload();
 
-    await expect(page.locator('[data-testid="login-email"]')).toBeVisible({ timeout: 10000 });
+    // After logout, guest sees home screen
+    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
     const freshTokens = await loginUser(sellerEmail);
     await authenticateInBrowser(page, freshTokens);

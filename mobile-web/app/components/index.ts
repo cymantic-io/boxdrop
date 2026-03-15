@@ -11,3 +11,5 @@ export { SearchBar } from './SearchBar';
 export { CategoryPicker } from './CategoryPicker';
 export { ErrorMessage } from './ErrorMessage';
 export { DateTimePicker } from './DateTimePicker';
+export { showError, showSuccess, showWarning, showConfirm, showFunPopup, FunPopupContainer } from './FunPopup';
+export type { PopupType } from './FunPopup';
