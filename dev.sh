@@ -53,6 +53,30 @@ backend_quality() {
     cd ..
 }
 
+backend_stop() {
+    print_header "Stopping Backend Server"
+
+    # Try to kill Gradle processes running the app
+    if pkill -f "gradlew.*run" 2>/dev/null; then
+        print_header "Killed Gradle run process"
+        return 0
+    fi
+
+    # Try killing by port
+    if lsof -i ":8080" &>/dev/null; then
+        local pid=$(lsof -t -i ":8080")
+        if [ -n "$pid" ]; then
+            kill -9 "$pid" 2>/dev/null && {
+                print_header "Killed process on port 8080 (PID: $pid)"
+                return 0
+            }
+        fi
+    fi
+
+    print_warning "No running backend server found"
+    return 0
+}
+
 mobile_install() {
     print_header "Installing Mobile Dependencies"
     cd mobile-web
@@ -241,6 +265,9 @@ case "${1:-help}" in
     backend:quality)
         backend_quality
         ;;
+    backend:stop)
+        backend_stop
+        ;;
     mobile:install)
         mobile_install
         ;;
@@ -287,6 +314,7 @@ USAGE:
 BACKEND COMMANDS:
     backend:build       Build the Kotlin backend
     backend:run         Run the backend server (with debug on 5005)
+    backend:stop        Stop the backend server
     backend:test        Run backend tests
     backend:quality     Run Detekt code quality checks
 
