@@ -121,7 +121,7 @@ test.describe('Multiple Login/Logout Cycles', () => {
       await page.getByTestId('nav-ProfileTab').click();
       await page.waitForTimeout(1000);
       await page.getByTestId('logout-menu-button').click();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       await page.getByTestId('logout-confirm-button').click();
       await page.waitForTimeout(2000);
 

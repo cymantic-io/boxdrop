@@ -42,6 +42,7 @@ interface AuthState {
   isLoading: boolean;
   showAuthPrompt: boolean;
   authRedirectRoute: string | null;
+  isLoggingOut: boolean;
   login: (challengeId: string, method: string, code: string) => Promise<void>;
   register: (challengeId: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -59,8 +60,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   showAuthPrompt: false,
   authRedirectRoute: null,
+  isLoggingOut: false,
 
-  setShowAuthPrompt: (show, redirectRoute) => set({ showAuthPrompt: show, authRedirectRoute: show ? redirectRoute ?? null : null }),
+  setShowAuthPrompt: (show, redirectRoute) => {
+    if (get().isLoggingOut) return;
+    set({ showAuthPrompt: show, authRedirectRoute: show ? redirectRoute ?? null : null });
+  },
 
   setTokens: (accessToken, refreshToken, userId) => {
     setAuthToken(accessToken);
@@ -96,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    set({ isLoggingOut: true });
     setAuthToken(null);
     await storage.deleteItem(TOKEN_KEY);
     await storage.deleteItem(REFRESH_KEY);
@@ -115,12 +121,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Navigate to HomeTab after logout
     try {
       const { navigationRef } = require('../../App');
-      if (navigationRef?.current?.navigate) {
-        navigationRef.current.navigate('Main', { screen: 'HomeTab' });
+      if (navigationRef?.current?.isReady()) {
+        navigationRef.current.reset({
+          index: 0,
+          routes: [{ name: 'HomeTab' }],
+        });
+      } else if (navigationRef?.current?.navigate) {
+        navigationRef.current.navigate('HomeTab');
       }
     } catch (e) {
       console.warn('Failed to navigate after logout', e);
     }
+    
+    // Clear the logout flag after navigation completes
+    setTimeout(() => {
+      set({ isLoggingOut: false });
+    }, 500);
   },
 
   loadStoredTokens: async () => {
