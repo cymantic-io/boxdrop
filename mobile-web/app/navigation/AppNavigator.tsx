@@ -249,6 +249,17 @@ export function AppNavigator() {
   const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
   const navigationRef = React.useRef<any>(null);
 
+  // Navigate to Auth or Main based on auth state changes
+  useEffect(() => {
+    if (navigationRef.current?.isReady?.()) {
+      const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+      navigationRef.current?.reset?.({
+        index: 0,
+        routes: [{ name: targetRoute }],
+      });
+    }
+  }, [showAuthPrompt, isAuthenticated]);
+
   if (isLoading) {
     return <View style={{ flex: 1, backgroundColor: colors.white }} />;
   }
@@ -263,20 +274,7 @@ export function AppNavigator() {
     <RootStack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName={initialRouteName}
-      screenListeners={({ navigation }) => ({
-        // Handle auth state changes by using navigation prop
-        state: () => {
-          if (navigationRef.current?.isReady?.()) {
-            const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
-            try {
-              (navigation as any).reset?.({
-                index: 0,
-                routes: [{ name: targetRoute }],
-              });
-            } catch (e) {}
-          }
-        },
-      })}
+      ref={navigationRef}
     >
       <RootStack.Screen name="Auth" component={AuthStack} />
       <RootStack.Screen name="Main" component={MainTabs} />
