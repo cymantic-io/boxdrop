@@ -60,7 +60,10 @@ export default function App() {
   const loadStoredTokens = useAuthStore((state) => state.loadStoredTokens);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const showAuthPrompt = useAuthStore((state) => state.showAuthPrompt);
-  const [navigationReady, setNavigationReady] = React.useState(false);
+  const prevStateRef = React.useRef<{ isAuthenticated: boolean; showAuthPrompt: boolean }>({
+    isAuthenticated: true,
+    showAuthPrompt: false,
+  });
 
   useEffect(() => {
     loadStoredTokens();
@@ -68,29 +71,28 @@ export default function App() {
 
   // Handle navigation when auth state changes
   useEffect(() => {
-    // Add a small delay to ensure navigation is ready
-    const timer = setTimeout(() => {
-      if (navigationReady && navigationRef.isReady()) {
-        const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
-        navigationRef.reset({
-          index: 0,
-          routes: [{ name: targetRoute }],
-        });
-      }
-    }, 0);
+    const targetRoute = showAuthPrompt || !isAuthenticated ? 'Auth' : 'Main';
+    const prevRoute = prevStateRef.current.showAuthPrompt || !prevStateRef.current.isAuthenticated ? 'Auth' : 'Main';
 
-    return () => clearTimeout(timer);
-  }, [showAuthPrompt, isAuthenticated, navigationReady]);
+    // Only navigate if the target route changed
+    if (targetRoute !== prevRoute && navigationRef.isReady()) {
+      if (targetRoute === 'Auth') {
+        // Navigate to Auth screen
+        navigationRef.navigate('Auth' as never);
+      } else {
+        // Navigate to Main screen
+        navigationRef.navigate('Main' as never);
+      }
+    }
+
+    prevStateRef.current = { isAuthenticated, showAuthPrompt };
+  }, [showAuthPrompt, isAuthenticated]);
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={paperTheme}>
-          <NavigationContainer
-            linking={linking}
-            ref={navigationRef}
-            onReady={() => setNavigationReady(true)}
-          >
+          <NavigationContainer linking={linking} ref={navigationRef}>
             <StatusBar style="light" />
             <AppNavigator />
             <FunPopupContainer />
