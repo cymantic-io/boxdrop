@@ -1,0 +1,19 @@
+
+Running 36 tests using 1 worker
+
+  ✓   1 auth.spec.ts:5:7 › Authentication › guest user sees home/explore screen by default (561ms)
+  ✓   2 auth.spec.ts:12:7 › Authentication › guest can see login/register options (550ms)
+  ✓   3 auth.spec.ts:28:7 › Authentication › registered user can authenticate and access the app (1.6s)
+  ✓   4 auth.spec.ts:36:7 › Authentication › user can log out and log back in (3.2s)
+  ✓   5 auth.spec.ts:53:7 › Unauthenticated Navigation › guest can browse home screen without logging in (529ms)
+  ✓   6 auth.spec.ts:62:7 › Unauthenticated Navigation › guest can view sale details without logging in (1.6s)
+  ✘   7 auth.spec.ts:80:7 › Unauthenticated Navigation › clicking My Sales triggers auth modal for guest (1.4s)
+  ✘   8 auth.spec.ts:80:7 › Unauthenticated Navigation › clicking My Sales triggers auth modal for guest (retry #1) (1.7s)
+  ✘   9 auth.spec.ts:97:7 › OTP Login Flow › user can complete full OTP login via email (11.6s)
+  ✘  10 auth.spec.ts:97:7 › OTP Login Flow › user can complete full OTP login via email (retry #1) (11.9s)
+  ✘  11 auth.spec.ts:130:7 › OTP Login Flow › invalid OTP shows error (11.5s)
+  ✘  12 auth.spec.ts:130:7 › OTP Login Flow › invalid OTP shows error (retry #1) (11.7s)
+  ✓  13 auth.spec.ts:154:7 › OTP Login Flow › login with valid OTP authenticates user (1.7s)
+  ✘  14 auth.spec.ts:168:7 › OTP Login Flow › guest can register new account (1.0m)
+  ✘  15 auth.spec.ts:168:7 › OTP Login Flow › guest can register new account (retry #1) (1.0m)
+  ✘  16 auth.spec.ts:198:7 › Logout Returns to Explore › logout from Profile tab returns to Explore (1.0m)

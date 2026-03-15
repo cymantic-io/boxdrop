@@ -77,18 +77,15 @@ test.describe('Unauthenticated Navigation', () => {
     }
   });
 
-  test.skip('clicking My Sales triggers auth modal for guest', async ({ page }) => {
-    // TODO: This test assumes a modal-based auth flow, but the app uses RootStack navigation
-    // which replaces the entire screen rather than overlaying a modal. This is a UX design
-    // choice that needs to be revisited - guests can still log in via other means for now.
+  test('clicking My Sales triggers auth modal for guest', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
     // Click on My Sales in navigation
     await page.getByText('My Sales').first().click();
 
-    // Should show login modal/screen
-    await page.waitForTimeout(1000);
+    // Should show auth screen
+    await page.waitForTimeout(2000);
     // The login screen should appear (either as modal or as the auth screen)
     const loginVisible = await page.locator('[data-testid="login-email"]').isVisible().catch(() => false);
     const registerVisible = await page.locator('[data-testid="register-name"]').isVisible().catch(() => false);
@@ -97,8 +94,7 @@ test.describe('Unauthenticated Navigation', () => {
 });
 
 test.describe('OTP Login Flow', () => {
-  test.skip('user can complete full OTP login via email', async ({ page }) => {
-    // TODO: Depends on auth modal appearing, which requires RootStack architectural changes
+  test('user can complete full OTP login via email', async ({ page }) => {
     // First register a user so we can log in
     const email = uniqueEmail('otp-login');
     await registerUser(email, 'OTP User');
@@ -107,9 +103,9 @@ test.describe('OTP Login Flow', () => {
     await page.goto('/');
     await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
-    // Trigger auth modal
+    // Trigger auth screen
     await page.getByText('My Sales').first().click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
     // Should see login form
     await expect(page.locator('[data-testid="login-email"]')).toBeVisible({ timeout: 10000 });
@@ -131,15 +127,14 @@ test.describe('OTP Login Flow', () => {
     await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
   });
 
-  test.skip('invalid OTP shows error', async ({ page }) => {
-    // TODO: Depends on auth modal appearing
+  test('invalid OTP shows error', async ({ page }) => {
     const email = uniqueEmail('invalid-otp');
     await registerUser(email, 'Invalid OTP User');
 
-    // Trigger auth modal
+    // Trigger auth screen
     await page.goto('/');
     await page.getByText('My Sales').first().click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
     await expect(page.locator('[data-testid="login-email"]')).toBeVisible({ timeout: 10000 });
 
@@ -170,14 +165,13 @@ test.describe('OTP Login Flow', () => {
     await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
   });
   
-  test.skip('guest can register new account', async ({ page }) => {
-    // TODO: Depends on auth modal appearing
+  test('guest can register new account', async ({ page }) => {
     const email = uniqueEmail('new-register');
 
-    // Trigger auth modal
+    // Trigger auth screen
     await page.goto('/');
     await page.getByText('My Sales').first().click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
     // Click Register link
     await page.getByText("Don't have an account?").click();
@@ -194,9 +188,14 @@ test.describe('OTP Login Flow', () => {
     // Should see verification code
     await expect(page.locator('[data-testid="verify-code"]')).toBeVisible({ timeout: 10000 });
 
-    // Complete registration - but email already registered in the form submission
-    // So we just verify the flow works up to OTP
-    // For full E2E, we'd need to handle the OTP from Redis after form submission
+    // Complete registration - get tokens via the register flow
+    const tokens = await registerUser(email, 'New User');
+
+    // Set tokens in browser to complete authentication
+    await authenticateInBrowser(page, tokens);
+
+    // Should now be on home screen (should be able to access protected content now)
+    await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
   });
 });
 

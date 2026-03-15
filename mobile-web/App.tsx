@@ -64,6 +64,7 @@ export default function App() {
     isAuthenticated: true,
     showAuthPrompt: false,
   });
+  const navigationTimeoutRef = React.useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     loadStoredTokens();
@@ -75,17 +76,30 @@ export default function App() {
     const prevRoute = prevStateRef.current.showAuthPrompt || !prevStateRef.current.isAuthenticated ? 'Auth' : 'Main';
 
     // Only navigate if the target route changed
-    if (targetRoute !== prevRoute && navigationRef.isReady()) {
-      if (targetRoute === 'Auth') {
-        // Navigate to Auth screen
-        navigationRef.navigate('Auth' as never);
-      } else {
-        // Navigate to Main screen
-        navigationRef.navigate('Main' as never);
+    if (targetRoute !== prevRoute) {
+      // Clear any pending navigation
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
       }
+
+      // Set a timeout to ensure navigation is ready
+      navigationTimeoutRef.current = setTimeout(() => {
+        if (navigationRef.isReady()) {
+          navigationRef.reset({
+            index: 0,
+            routes: [{ name: targetRoute }],
+          });
+        }
+      }, 100);
     }
 
     prevStateRef.current = { isAuthenticated, showAuthPrompt };
+
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
   }, [showAuthPrompt, isAuthenticated]);
 
   return (
