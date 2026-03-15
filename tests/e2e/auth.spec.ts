@@ -78,14 +78,25 @@ test.describe('Unauthenticated Navigation', () => {
   });
 
   test('clicking My Sales triggers auth modal for guest', async ({ page }) => {
+    // Listen for console errors
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        console.log('Console error:', msg.text());
+      }
+    });
+    
     await page.goto('/');
     await expect(page.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 10000 });
 
-    // Click on My Sales in navigation
-    await page.getByText('My Sales').first().click();
-
-    // Should show auth screen
-    await page.waitForTimeout(2000);
+    // Try using the testID to click on the nav
+    const navButton = page.getByTestId('nav-MySalesTab');
+    await navButton.click();
+    await page.waitForTimeout(3000);
+    
+    // Check if auth overlay is visible
+    const overlayVisible = await page.locator('[data-testid="auth-overlay"]').isVisible().catch(() => false);
+    console.log('Auth overlay visible:', overlayVisible);
+    
     // The login screen should appear (either as modal or as the auth screen)
     const loginVisible = await page.locator('[data-testid="login-email"]').isVisible().catch(() => false);
     const registerVisible = await page.locator('[data-testid="register-name"]').isVisible().catch(() => false);

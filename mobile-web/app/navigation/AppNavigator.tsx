@@ -58,34 +58,6 @@ const defaultStackScreenOptions = {
 
 const webRootScreenOptions = isWeb ? { headerShown: false } as const : {};
 
-// --- Auth Stack ---
-const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
-
-function AuthStack() {
-  const authContent = (
-    <AuthStackNav.Navigator screenOptions={defaultStackScreenOptions}>
-      <AuthStackNav.Screen name="Login" component={LoginScreen} options={webRootScreenOptions} />
-      <AuthStackNav.Screen name="Register" component={RegisterScreen} />
-      <AuthStackNav.Screen name="VerifyCode" component={VerifyCodeScreen} options={{ title: 'Verify Code' }} />
-      <AuthStackNav.Screen name="MethodPicker" component={MethodPickerScreen} options={{ title: 'Choose Method' }} />
-    </AuthStackNav.Navigator>
-  );
-
-  if (isWeb) {
-    return (
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]}>
-        {authContent}
-      </View>
-    );
-  }
-
-  return (
-    <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
-      {authContent}
-    </BlurView>
-  );
-}
-
 // --- Home Stack ---
 const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 
@@ -240,6 +212,22 @@ function MainTabs() {
   );
 }
 
+// Simple Auth Overlay - renders LoginScreen directly without a navigator
+// This avoids the NativeStackNavigator error when navigating between tabs
+function AuthOverlay() {
+  return (
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]} testID="auth-overlay">
+      {isWeb ? (
+        <LoginScreen />
+      ) : (
+        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
+          <LoginScreen />
+        </BlurView>
+      )}
+    </View>
+  );
+}
+
 export function AppNavigator() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -252,11 +240,7 @@ export function AppNavigator() {
   return (
     <View style={{ flex: 1 }}>
       <MainTabs />
-      {showAuthPrompt && (
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]}>
-          <AuthStack />
-        </View>
-      )}
+      {showAuthPrompt && <AuthOverlay />}
     </View>
   );
 }
