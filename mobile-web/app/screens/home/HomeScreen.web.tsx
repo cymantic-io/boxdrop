@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import type { LeafletEventHandlerFnMap } from 'leaflet';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import L from 'leaflet';
 import { SearchBar, SaleCard, EmptyState, LoadingScreen } from '../../components';
@@ -27,149 +27,68 @@ interface MapBounds {
   west: number;
 }
 
-function MapEventsHandler({
-  onBoundsChange,
-  onViewChange,
-}: {
-  onBoundsChange: (bounds: MapBounds) => void;
-  onViewChange: (center: [number, number], zoom: number) => void;
-}) {
-  const map = useMap();
-  const isInitial = useRef(true);
-
-  useMapEvents({
-    moveend: () => {
-      if (isInitial.current) {
-        isInitial.current = false;
-        return;
-      }
-      const bounds = map.getBounds();
-      onBoundsChange({
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-      });
-      const center = map.getCenter();
-      onViewChange([center.lat, center.lng], map.getZoom());
-    },
-    load: () => {
-      const bounds = map.getBounds();
-      onBoundsChange({
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-      });
-      const center = map.getCenter();
-      onViewChange([center.lat, center.lng], map.getZoom());
-    },
-    zoomend: () => {
-      const center = map.getCenter();
-      onViewChange([center.lat, center.lng], map.getZoom());
-    },
-  });
-
-  return null;
-}
-
-function SalesMap({
+const SalesMap = React.memo(function SalesMap({
   initialCenter,
   zoom,
-  sales,
-  selectedSaleId,
-  onMarkerClick,
-  onViewDetails,
   onBoundsChange,
-  onViewChange,
+  onMapReady,
 }: {
   initialCenter: [number, number];
   zoom: number;
-  sales: Sale[];
-  selectedSaleId: string | null;
-  onMarkerClick: (saleId: string) => void;
-  onViewDetails: (saleId: string) => void;
   onBoundsChange: (bounds: MapBounds) => void;
-  onViewChange: (center: [number, number], zoom: number) => void;
+  onMapReady: (map: L.Map) => void;
 }): JSX.Element {
-  return (
-    <MapContainer
-      center={initialCenter}
-      zoom={zoom}
-      style={{ width: '100%', height: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapEventsHandler onBoundsChange={onBoundsChange} onViewChange={onViewChange} />
-      {sales.map((sale) => {
-        const startsAt = new Date(sale.startsAt).toLocaleDateString();
-        const endsAt = new Date(sale.endsAt).toLocaleDateString();
-        const isSelected = sale.id === selectedSaleId;
-        return (
-          <Marker
-            key={sale.id}
-            position={[sale.latitude, sale.longitude]}
-            eventHandlers={{
-              click: () => onMarkerClick(sale.id),
-            }}
-          >
-            <Popup>
-              <div style={{ minWidth: 180, maxWidth: 260 }}>
-                <strong style={{ fontSize: 14 }}>{sale.title}</strong>
-                {sale.address ? (
-                  <div style={{ fontSize: 12, color: '#667085', marginTop: 2 }}>
-                    {sale.address}
-                  </div>
-                ) : null}
-                <div style={{ fontSize: 12, color: '#98A2B3', marginTop: 2 }}>
-                  {startsAt} – {endsAt}
-                </div>
-                {sale.description ? (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: '#667085',
-                      marginTop: 4,
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                    }}
-                  >
-                    {sale.description}
-                  </div>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => onViewDetails(sale.id)}
-                  style={{
-                    border: 'none',
-                    background: 'none',
-                    padding: 0,
-                    marginTop: 6,
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#2A9D8F',
-                  }}
-                >
-                  View details →
-                </button>
-                {isSelected ? (
-                  <div style={{ fontSize: 11, color: '#1A7A6E', marginTop: 4 }}>
-                    Selected
-                  </div>
-                ) : null}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MapContainer>
-  );
-}
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      center: initialCenter,
+      zoom,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    const emitBounds = () => {
+      const bounds = map.getBounds();
+      onBoundsChange({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+      });
+    };
+
+    const handlers: LeafletEventHandlerFnMap = {
+      load: emitBounds,
+      moveend: emitBounds,
+      zoomend: emitBounds,
+    };
+
+    map.on(handlers);
+    map.whenReady(() => {
+      map.invalidateSize();
+      emitBounds();
+    });
+
+    mapInstanceRef.current = map;
+    onMapReady(map);
+
+    return () => {
+      map.off(handlers);
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [initialCenter, zoom, onBoundsChange, onMapReady]);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+});
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -177,33 +96,66 @@ export function HomeScreen({ navigation }: Props) {
   const [searchText, setSearchText] = useState('');
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-  const { latitude, longitude, isLoading: locationLoading, requestLocation } = useLocationStore();
+  const { latitude, longitude, requestLocation } = useLocationStore();
   const flatListRef = useRef<FlatList<Sale>>(null);
 
   useEffect(() => {
     requestLocation();
   }, [requestLocation]);
 
-  // Use user location if available, otherwise fallback
   const mapCenter = useMemo<[number, number]>(
     () => (latitude != null && longitude != null ? [latitude, longitude] : FALLBACK_CENTER),
     [latitude, longitude],
   );
   const mapZoom = latitude != null ? 12 : FALLBACK_ZOOM;
-  const [mapView, setMapView] = useState<{ center: [number, number]; zoom: number }>({
-    center: mapCenter,
-    zoom: mapZoom,
-  });
+  const initialCenterRef = useRef<[number, number]>(mapCenter);
+  const initialZoomRef = useRef<number>(mapZoom);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
   const hasCenteredOnLocation = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
+  const latRef = useRef<number | null>(latitude ?? null);
+  const lngRef = useRef<number | null>(longitude ?? null);
+  const pendingCenterRef = useRef<[number, number] | null>(null);
 
   useEffect(() => {
-    if (latitude == null || longitude == null) return;
-    if (hasCenteredOnLocation.current) return;
-    setMapView({ center: [latitude, longitude], zoom: 12 });
-    hasCenteredOnLocation.current = true;
-  }, [latitude, longitude]);
+    latRef.current = latitude ?? null;
+    lngRef.current = longitude ?? null;
+    if (latitude != null && longitude != null && !mapReady) {
+      initialCenterRef.current = [latitude, longitude];
+      initialZoomRef.current = 12;
+    }
+  }, [latitude, longitude, mapReady]);
 
-  // Ensure map bounds are initialized with a ~50km radius box around the center so tests don't fail rendering
+  const maybeCenterOnLocation = useCallback(() => {
+    const lat = latRef.current;
+    const lng = lngRef.current;
+    if (lat == null || lng == null) return;
+    if (hasCenteredOnLocation.current) return;
+    if (!mapRef.current) return;
+    mapRef.current.setView([lat, lng], 12);
+    hasCenteredOnLocation.current = true;
+  }, []);
+
+  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+    setMapBounds(bounds);
+  }, []);
+
+  const handleMapReady = useCallback((map: L.Map) => {
+    mapRef.current = map;
+    if (!markerLayerRef.current) {
+      markerLayerRef.current = L.layerGroup().addTo(map);
+    }
+    setMapReady(true);
+    if (pendingCenterRef.current) {
+      map.setView(pendingCenterRef.current, 12);
+      pendingCenterRef.current = null;
+      hasCenteredOnLocation.current = true;
+      return;
+    }
+    maybeCenterOnLocation();
+  }, [maybeCenterOnLocation]);
+
   const currentMapBounds = mapBounds ?? {
     north: mapCenter[0] + 0.5,
     south: mapCenter[0] - 0.5,
@@ -211,11 +163,9 @@ export function HomeScreen({ navigation }: Props) {
     west: mapCenter[1] - 0.5,
   };
 
-  // Calculate center and radius from bounds
   const queryLat = (currentMapBounds.north + currentMapBounds.south) / 2;
   const queryLng = (currentMapBounds.east + currentMapBounds.west) / 2;
-  
-  // Calculate radius in km from bounds
+
   const queryRadius = (() => {
     const latDelta = (currentMapBounds.north - currentMapBounds.south) / 2;
     const lngDelta = (currentMapBounds.east - currentMapBounds.west) / 2;
@@ -223,7 +173,7 @@ export function HomeScreen({ navigation }: Props) {
     const kmPerDegreeLng = 111 * Math.cos(queryLat * Math.PI / 180);
     const latKm = latDelta * kmPerDegreeLat;
     const lngKm = lngDelta * kmPerDegreeLng;
-    return Math.max(Math.sqrt(latKm * latKm + lngKm * lngKm), 50); // Ensure at least 50km for initial fallback
+    return Math.max(Math.sqrt(latKm * latKm + lngKm * lngKm), 50);
   })();
 
   const {
@@ -281,13 +231,67 @@ export function HomeScreen({ navigation }: Props) {
     setSelectedSaleId(saleId);
   }, []);
 
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchText(text);
-  }, []);
+  useEffect(() => {
+    const map = mapRef.current;
+    const layerGroup = markerLayerRef.current;
+    if (!map || !layerGroup) return;
+    if (!mapReady) return;
 
-  if (isLoading && !isRefetching) {
-    return <LoadingScreen />;
-  }
+    layerGroup.clearLayers();
+    displayedSales.forEach((sale) => {
+      const startsAt = new Date(sale.startsAt).toLocaleDateString();
+      const endsAt = new Date(sale.endsAt).toLocaleDateString();
+      const isSelected = sale.id === selectedSaleId;
+
+      const popupHtml = `
+        <div style="min-width: 180px; max-width: 260px;">
+          <strong style="font-size: 14px;">${sale.title}</strong>
+          ${sale.address ? `<div style="font-size: 12px; color: #667085; margin-top: 2px;">${sale.address}</div>` : ''}
+          <div style="font-size: 12px; color: #98A2B3; margin-top: 2px;">${startsAt} – ${endsAt}</div>
+          ${sale.description ? `<div style="font-size: 12px; color: #667085; margin-top: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${sale.description}</div>` : ''}
+          <button data-sale-id="${sale.id}" style="border: none; background: none; padding: 0; margin-top: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #2A9D8F;">View details →</button>
+          ${isSelected ? `<div style="font-size: 11px; color: #1A7A6E; margin-top: 4px;">Selected</div>` : ''}
+        </div>
+      `;
+
+      const marker = L.marker([sale.latitude, sale.longitude]);
+      marker.on('click', () => handleMarkerClick(sale.id));
+      marker.bindPopup(popupHtml);
+      marker.on('popupopen', () => {
+        const popupEl = marker.getPopup()?.getElement();
+        if (!popupEl) return;
+        const button = popupEl.querySelector<HTMLButtonElement>('button[data-sale-id]');
+        if (button) {
+          button.onclick = () => navigation.navigate('SaleDetail', { saleId: sale.id });
+        }
+      });
+      marker.addTo(layerGroup);
+    });
+  }, [displayedSales, selectedSaleId, handleMarkerClick, navigation, mapReady]);
+
+  useEffect(() => {
+    if (latitude == null || longitude == null) return;
+    if (hasCenteredOnLocation.current) return;
+    if (mapRef.current) {
+      maybeCenterOnLocation();
+      return;
+    }
+    pendingCenterRef.current = [latitude, longitude];
+  }, [latitude, longitude, mapReady, maybeCenterOnLocation]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    const timer = window.setTimeout(handleResize, 0);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [mapReady]);
 
   return (
     <View style={styles.container} testID="home-screen">
@@ -302,14 +306,10 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.content}>
         <View style={styles.mapPanel}>
           <SalesMap
-            initialCenter={mapView.center}
-            zoom={mapView.zoom}
-            sales={displayedSales}
-            selectedSaleId={selectedSaleId}
-            onMarkerClick={handleMarkerClick}
-            onViewDetails={(saleId) => navigation.navigate('SaleDetail', { saleId })}
-            onBoundsChange={setMapBounds}
-            onViewChange={(center, zoom) => setMapView({ center, zoom })}
+            initialCenter={initialCenterRef.current}
+            zoom={initialZoomRef.current}
+            onBoundsChange={handleBoundsChange}
+            onMapReady={handleMapReady}
           />
         </View>
         <View style={styles.listPanel} testID="sale-list-panel">
@@ -363,12 +363,14 @@ const styles = StyleSheet.create({
   },
   mapPanel: {
     width: '60%',
+    minHeight: 400,
   },
   listPanel: {
     width: '40%',
     backgroundColor: colors.surface,
     borderLeftWidth: 1,
     borderLeftColor: colors.border,
+    minHeight: 400,
   },
   list: {
     flexGrow: 1,

@@ -48,6 +48,7 @@ export function useNearbySales(
     queryFn: () => getNearbySales(lat!, lng!, radiusKm),
     enabled: lat != null && lng != null,
     staleTime: 30 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 }
 
