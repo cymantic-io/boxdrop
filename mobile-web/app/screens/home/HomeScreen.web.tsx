@@ -13,10 +13,6 @@ import type { HomeStackParamList, Sale } from '../../types';
 const FALLBACK_CENTER: [number, number] = [39.8283, -98.5795];
 const FALLBACK_ZOOM = 4;
 
-if (typeof window !== 'undefined') {
-  // eslint-disable-next-line no-console
-  console.log('[Map] HomeScreen.web loaded');
-}
 
 // Fix default marker icons for Leaflet (assets are not bundled by default)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -340,13 +336,6 @@ export function HomeScreen({ navigation }: Props) {
   }, [mapReady]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Map] marker effect fired', {
-        mapReady,
-        displayedSales: displayedSales.length,
-        selectedSaleId,
-      });
-    }
   }, [displayedSales, mapReady, selectedSaleId]);
 
   const ensureMarkerRoot = useCallback((map: L.Map) => {
@@ -367,38 +356,12 @@ export function HomeScreen({ navigation }: Props) {
   const renderMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map || !mapReady) {
-      if (typeof window !== 'undefined') {
-        console.log('[Map] renderMarkers skipped', { hasMap: !!map, mapReady });
-      }
       return;
     }
     const root = ensureMarkerRoot(map);
     root.innerHTML = '';
     const bounds = map.getBounds();
-    if (typeof window !== 'undefined') {
-      const sample = displayedSales[0];
-      console.log('[Map] rendering markers', {
-        count: displayedSales.length,
-        sample: sample
-          ? {
-            id: sample.id,
-            lat: sample.latitude,
-            lng: sample.longitude,
-            inView:
-              sample.latitude <= bounds.getNorth() &&
-              sample.latitude >= bounds.getSouth() &&
-              sample.longitude <= bounds.getEast() &&
-              sample.longitude >= bounds.getWest(),
-          }
-          : null,
-        bounds: {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest(),
-        },
-      });
-    }
+    void bounds;
 
     displayedSales.forEach((sale) => {
       if (!Number.isFinite(sale.latitude) || !Number.isFinite(sale.longitude)) {
