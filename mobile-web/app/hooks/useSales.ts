@@ -44,7 +44,7 @@ export function useNearbySales(
   refreshTrigger?: number,
 ) {
   return useQuery({
-    queryKey: [...saleKeys.nearby(lat!, lng!, radiusKm), refreshTrigger],
+    queryKey: [...saleKeys.nearby(lat ?? 0, lng ?? 0, radiusKm), refreshTrigger],
     queryFn: () => getNearbySales(lat!, lng!, radiusKm),
     enabled: lat != null && lng != null,
     staleTime: 30 * 1000,

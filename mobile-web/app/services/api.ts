@@ -203,7 +203,7 @@ export async function getSale(id: string): Promise<Sale> {
 }
 
 export async function getNearbySales(lat: number, lng: number, radiusKm: number): Promise<Sale[]> {
-  const { data } = await api.get<ApiResponse<Sale[]>>('/sales/nearby', {
+  const { data } = await api.get<ApiResponse<Sale[]>>('/nearby_sales', {
     params: { lat, lng, radiusKm },
   });
   return data.data ?? [];

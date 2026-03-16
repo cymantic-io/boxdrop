@@ -18,32 +18,25 @@ open class SaleController(private val saleService: SaleService) {
     fun getMySales(request: HttpRequest<*>): HttpResponse<ApiResponse<List<SaleResponse>>> =
         HttpResponse.ok(ApiResponse(saleService.getMySales(request.userId())))
 
-    @Get("/{id}")
+    @Get("/{id:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}")
     fun getById(@PathVariable id: UUID): HttpResponse<ApiResponse<SaleResponse>> =
         HttpResponse.ok(ApiResponse(saleService.getById(id)))
 
-    @Put("/{id}")
+    @Put("/{id:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}")
     fun update(request: HttpRequest<*>, @PathVariable id: UUID, @Body body: UpdateSaleRequest): HttpResponse<ApiResponse<SaleResponse>> =
         HttpResponse.ok(ApiResponse(saleService.update(id, request.userId(), body)))
 
-    @Delete("/{id}")
+    @Delete("/{id:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}")
     fun delete(request: HttpRequest<*>, @PathVariable id: UUID): HttpResponse<Unit> {
         saleService.delete(id, request.userId())
         return HttpResponse.noContent()
     }
 
-    @Post("/{id}/activate")
+    @Post("/{id:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}/activate")
     fun activate(request: HttpRequest<*>, @PathVariable id: UUID): HttpResponse<ApiResponse<SaleResponse>> =
         HttpResponse.ok(ApiResponse(saleService.activate(id, request.userId())))
 
-    @Post("/{id}/end")
+    @Post("/{id:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}/end")
     fun end(request: HttpRequest<*>, @PathVariable id: UUID): HttpResponse<ApiResponse<SaleResponse>> =
         HttpResponse.ok(ApiResponse(saleService.endSale(id, request.userId())))
-
-    @Get("/nearby")
-    fun findNearby(
-        @QueryValue lat: Double, @QueryValue lng: Double,
-        @QueryValue(defaultValue = "10") radiusKm: Double
-    ): HttpResponse<ApiResponse<List<SaleResponse>>> =
-        HttpResponse.ok(ApiResponse(saleService.findNearby(lat, lng, radiusKm)))
 }
