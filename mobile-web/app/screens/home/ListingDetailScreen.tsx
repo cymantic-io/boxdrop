@@ -33,7 +33,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
   const userId = useAuthStore((s) => s.userId);
   const { data: listing, isLoading, isError } = useListing(listingId);
   const { data: sale } = useSale(listing?.saleId);
-  const { data: savedListings } = useSavedListings();
+  const { data: savedListings } = useSavedListings({ enabled: isAuthenticated });
   const { mutate: save } = useSaveListing();
   const { mutate: unsave } = useUnsaveListing();
   const isSaved = savedListings?.some((item) => item.id === listingId) ?? false;
@@ -117,7 +117,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
             <PaperButton
               mode={isSaved ? 'contained' : 'outlined'}
               icon={isSaved ? 'heart' : 'heart-outline'}
-              onPress={() => isSaved ? unsave(listing.id) : save(listing.id)}
+              onPress={() => requireAuth(() => (isSaved ? unsave(listing.id) : save(listing.id)))}
               style={isSaved ? styles.savedButton : styles.saveButton}
               textColor={isSaved ? colors.white : colors.accent}
               buttonColor={isSaved ? colors.accent : undefined}

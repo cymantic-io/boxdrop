@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useNavigationStore } from '../stores/useNavigationStore';
 import { colors } from '../theme';
@@ -57,6 +58,24 @@ const defaultStackScreenOptions = {
 };
 
 const webRootScreenOptions = isWeb ? { headerShown: false } as const : {};
+
+// --- Auth Stack (overlay) ---
+const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
+
+function AuthStackOverlay() {
+  return (
+    <NavigationIndependentTree>
+      <NavigationContainer independent style={{ flex: 1 }}>
+        <AuthStackNav.Navigator screenOptions={{ headerShown: false }}>
+          <AuthStackNav.Screen name="Login" component={LoginScreen} />
+          <AuthStackNav.Screen name="Register" component={RegisterScreen} />
+          <AuthStackNav.Screen name="VerifyCode" component={VerifyCodeScreen} />
+          <AuthStackNav.Screen name="MethodPicker" component={MethodPickerScreen} />
+        </AuthStackNav.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
+  );
+}
 
 // --- Home Stack ---
 const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
@@ -214,29 +233,29 @@ function MainTabs() {
 
 // Simple Auth Overlay - renders auth stack directly without nested NavigationContainer
 function AuthOverlay() {
-  const [authStack, setAuthStack] = React.useState<'login' | 'register' | 'verifyCode' | 'methodPicker'>('login');
-  
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }]} testID="auth-overlay">
       {isWeb ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          {authStack === 'login' && <LoginScreenWrapper />}
+        <View style={styles.authOverlayContainer}>
+          <View style={styles.authOverlayCard}>
+            <View style={styles.authOverlayContent}>
+              <AuthStackOverlay />
+            </View>
+          </View>
         </View>
       ) : (
         <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            {authStack === 'login' && <LoginScreenWrapper />}
+          <View style={styles.authOverlayContainer}>
+            <View style={styles.authOverlayCard}>
+              <View style={styles.authOverlayContent}>
+                <AuthStackOverlay />
+              </View>
+            </View>
           </View>
         </BlurView>
       )}
     </View>
   );
-}
-
-// Wrapper that provides mock navigation for LoginScreen
-function LoginScreenWrapper() {
-  const navigate = () => {} // Mock - auth flow not fully supported in overlay
-  return <LoginScreen navigation={{ navigate } as any} />;
 }
 
 export function AppNavigator() {
@@ -255,3 +274,30 @@ export function AppNavigator() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  authOverlayContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  authOverlayCard: {
+    width: '100%',
+    maxWidth: 440,
+    minWidth: 320,
+    maxHeight: '90%',
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: colors.darkSurface,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  authOverlayContent: {
+    flex: 1,
+    minHeight: 420,
+  },
+});
