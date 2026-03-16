@@ -16,6 +16,7 @@ micronaut:
             - http://localhost
             - http://localhost:19006
             - http://localhost:8081
+            - http://localhost:8082
           allowed-methods:
             - GET
             - POST

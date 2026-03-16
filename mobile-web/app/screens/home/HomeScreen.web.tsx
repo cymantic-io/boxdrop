@@ -28,22 +28,33 @@ interface MapBounds {
 
 function MapController({
   onBoundsChange,
+  onCenterChange,
   fitToSales,
 }: {
   onBoundsChange: (bounds: MapBounds) => void;
+  onCenterChange: (lat: number, lng: number) => void;
   fitToSales: Sale[] | null;
 }) {
   const map = useMap();
+  const prevCenterRef = useRef<{ lat: number; lng: number } | null>(null);
 
   useMapEvents({
     moveend: () => {
       const b = map.getBounds();
+      const center = map.getCenter();
       onBoundsChange({
         north: b.getNorth(),
         south: b.getSouth(),
         east: b.getEast(),
         west: b.getWest(),
       });
+      // Only trigger refetch if center changed significantly (more than 500m)
+      if (!prevCenterRef.current || 
+          Math.abs(center.lat - prevCenterRef.current.lat) > 0.005 ||
+          Math.abs(center.lng - prevCenterRef.current.lng) > 0.005) {
+        prevCenterRef.current = { lat: center.lat, lng: center.lng };
+        onCenterChange(center.lat, center.lng);
+      }
     },
   });
 
@@ -63,9 +74,20 @@ export function HomeScreen({ navigation }: Props) {
   const [searchText, setSearchText] = useState('');
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  // Track map center separately - starts with location store, updates on map move
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  // Trigger refetch when map center changes
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { latitude, longitude, isLoading: locationLoading, requestLocation } = useLocationStore();
   const flatListRef = useRef<FlatList<Sale>>(null);
   const markerRefs = useRef<Record<string, L.Marker>>({});
+
+  // Initialize map center from location store on first load
+  useEffect(() => {
+    if (latitude != null && longitude != null && !mapCenter) {
+      setMapCenter({ lat: latitude, lng: longitude });
+    }
+  }, [latitude, longitude, mapCenter]);
 
   useEffect(() => {
     if (latitude == null && !locationLoading) {
@@ -75,11 +97,21 @@ export function HomeScreen({ navigation }: Props) {
 
   const isSearching = searchText.trim().length > 0;
 
+  // Use mapCenter if available, otherwise fall back to location store
+  const effectiveLat = mapCenter?.lat ?? latitude ?? undefined;
+  const effectiveLng = mapCenter?.lng ?? longitude ?? undefined;
+
   const {
     data: nearbySales,
     isLoading,
     isRefetching,
-  } = useNearbySales(latitude ?? undefined, longitude ?? undefined, 10);
+  } = useNearbySales(effectiveLat ?? undefined, effectiveLng ?? undefined, 10, refreshTrigger);
+
+  // Handler for when map center changes (user pans/zooms)
+  const handleMapCenterChange = useCallback((lat: number, lng: number) => {
+    setMapCenter({ lat, lng });
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   const searchFilteredSales = useMemo(() => {
     const sales = nearbySales ?? [];
@@ -110,14 +142,18 @@ export function HomeScreen({ navigation }: Props) {
   // Only fit map to search results when actively searching
   const fitToSales = isSearching ? searchFilteredSales : null;
 
+  // Use mapCenter if available (from map movement), otherwise fall back to location store
   const center = useMemo<[number, number]>(() => {
+    if (mapCenter) {
+      return [mapCenter.lat, mapCenter.lng];
+    }
     if (latitude != null && longitude != null) {
       return [latitude, longitude];
     }
     return DEFAULT_CENTER;
-  }, [latitude, longitude]);
+  }, [mapCenter, latitude, longitude]);
 
-  const zoom = latitude != null ? 12 : DEFAULT_ZOOM;
+  const zoom = mapCenter || latitude != null ? 12 : DEFAULT_ZOOM;
 
   const scrollToSale = useCallback(
     (saleId: string) => {
@@ -170,7 +206,7 @@ export function HomeScreen({ navigation }: Props) {
             zoom={zoom}
             style={{ width: '100%', height: '100%' }}
           >
-            <MapController onBoundsChange={setMapBounds} fitToSales={fitToSales} />
+            <MapController onBoundsChange={setMapBounds} onCenterChange={handleMapCenterChange} fitToSales={fitToSales} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
