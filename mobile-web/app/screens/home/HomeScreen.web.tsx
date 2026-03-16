@@ -1,5 +1,6 @@
+import 'leaflet/dist/leaflet.css';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import type { LeafletEventHandlerFnMap } from 'leaflet';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import L from 'leaflet';
@@ -11,6 +12,11 @@ import type { HomeStackParamList, Sale } from '../../types';
 
 const FALLBACK_CENTER: [number, number] = [39.8283, -98.5795];
 const FALLBACK_ZOOM = 4;
+
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line no-console
+  console.log('[Map] HomeScreen.web loaded');
+}
 
 // Fix default marker icons for Leaflet (assets are not bundled by default)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -26,6 +32,15 @@ interface MapBounds {
   east: number;
   west: number;
 }
+
+interface StoredMapView {
+  center: [number, number];
+  zoom: number;
+  bounds: MapBounds | null;
+  origin: [number, number] | null;
+}
+
+const MAP_VIEW_KEY = 'boxdrop_explore_map_view';
 
 const SalesMap = React.memo(function SalesMap({
   initialCenter,
@@ -51,11 +66,18 @@ const SalesMap = React.memo(function SalesMap({
       scrollWheelZoom: true,
     });
 
+    map.createPane('salesMarkers');
+    const markerPane = map.getPane('salesMarkers');
+    if (markerPane) {
+      markerPane.style.zIndex = '650';
+    }
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(map);
 
     const emitBounds = () => {
+      if (!map._loaded) return;
       const bounds = map.getBounds();
       onBoundsChange({
         north: bounds.getNorth(),
@@ -73,8 +95,10 @@ const SalesMap = React.memo(function SalesMap({
 
     map.on(handlers);
     map.whenReady(() => {
-      map.invalidateSize();
-      emitBounds();
+      requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false });
+        emitBounds();
+      });
     });
 
     mapInstanceRef.current = map;
@@ -98,34 +122,60 @@ export function HomeScreen({ navigation }: Props) {
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const { latitude, longitude, requestLocation } = useLocationStore();
   const flatListRef = useRef<FlatList<Sale>>(null);
+  const [savedView, setSavedView] = useState<StoredMapView | null>(null);
 
   useEffect(() => {
     requestLocation();
   }, [requestLocation]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(MAP_VIEW_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as StoredMapView;
+      if (parsed?.center && typeof parsed.center[0] === 'number' && typeof parsed.center[1] === 'number') {
+        setSavedView(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const mapCenter = useMemo<[number, number]>(
-    () => (latitude != null && longitude != null ? [latitude, longitude] : FALLBACK_CENTER),
-    [latitude, longitude],
+    () => savedView?.center ?? (latitude != null && longitude != null ? [latitude, longitude] : FALLBACK_CENTER),
+    [savedView, latitude, longitude],
   );
-  const mapZoom = latitude != null ? 12 : FALLBACK_ZOOM;
+  const mapZoom = savedView?.zoom ?? (latitude != null ? 12 : FALLBACK_ZOOM);
   const initialCenterRef = useRef<[number, number]>(mapCenter);
   const initialZoomRef = useRef<number>(mapZoom);
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const markerRootRef = useRef<HTMLDivElement | null>(null);
   const hasCenteredOnLocation = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const latRef = useRef<number | null>(latitude ?? null);
   const lngRef = useRef<number | null>(longitude ?? null);
   const pendingCenterRef = useRef<[number, number] | null>(null);
+  const originRef = useRef<[number, number] | null>(savedView?.origin ?? null);
 
   useEffect(() => {
     latRef.current = latitude ?? null;
     lngRef.current = longitude ?? null;
-    if (latitude != null && longitude != null && !mapReady) {
+    if (latitude != null && longitude != null && !originRef.current) {
+      originRef.current = [latitude, longitude];
+    }
+    if (!mapReady && savedView?.center) {
+      initialCenterRef.current = savedView.center;
+      initialZoomRef.current = savedView.zoom;
+      setMapBounds(savedView.bounds ?? null);
+      return;
+    }
+    if (latitude != null && longitude != null && !mapReady && !savedView) {
       initialCenterRef.current = [latitude, longitude];
       initialZoomRef.current = 12;
     }
-  }, [latitude, longitude, mapReady]);
+  }, [latitude, longitude, mapReady, savedView]);
 
   const maybeCenterOnLocation = useCallback(() => {
     const lat = latRef.current;
@@ -139,6 +189,22 @@ export function HomeScreen({ navigation }: Props) {
 
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
     setMapBounds(bounds);
+    if (!mapRef.current) return;
+    const center = mapRef.current.getCenter();
+    const zoom = mapRef.current.getZoom();
+    if (typeof window !== 'undefined') {
+      const payload: StoredMapView = {
+        center: [center.lat, center.lng],
+        zoom,
+        bounds,
+        origin: originRef.current,
+      };
+      try {
+        window.localStorage.setItem(MAP_VIEW_KEY, JSON.stringify(payload));
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
   const handleMapReady = useCallback((map: L.Map) => {
@@ -147,6 +213,14 @@ export function HomeScreen({ navigation }: Props) {
       markerLayerRef.current = L.layerGroup().addTo(map);
     }
     setMapReady(true);
+    if (savedView?.center) {
+      map.setView(savedView.center, savedView.zoom ?? 12);
+      if (savedView.bounds) {
+        setMapBounds(savedView.bounds);
+      }
+      hasCenteredOnLocation.current = true;
+      return;
+    }
     if (pendingCenterRef.current) {
       map.setView(pendingCenterRef.current, 12);
       pendingCenterRef.current = null;
@@ -154,7 +228,7 @@ export function HomeScreen({ navigation }: Props) {
       return;
     }
     maybeCenterOnLocation();
-  }, [maybeCenterOnLocation]);
+  }, [maybeCenterOnLocation, savedView]);
 
   const currentMapBounds = mapBounds ?? {
     north: mapCenter[0] + 0.5,
@@ -232,44 +306,6 @@ export function HomeScreen({ navigation }: Props) {
   }, []);
 
   useEffect(() => {
-    const map = mapRef.current;
-    const layerGroup = markerLayerRef.current;
-    if (!map || !layerGroup) return;
-    if (!mapReady) return;
-
-    layerGroup.clearLayers();
-    displayedSales.forEach((sale) => {
-      const startsAt = new Date(sale.startsAt).toLocaleDateString();
-      const endsAt = new Date(sale.endsAt).toLocaleDateString();
-      const isSelected = sale.id === selectedSaleId;
-
-      const popupHtml = `
-        <div style="min-width: 180px; max-width: 260px;">
-          <strong style="font-size: 14px;">${sale.title}</strong>
-          ${sale.address ? `<div style="font-size: 12px; color: #667085; margin-top: 2px;">${sale.address}</div>` : ''}
-          <div style="font-size: 12px; color: #98A2B3; margin-top: 2px;">${startsAt} – ${endsAt}</div>
-          ${sale.description ? `<div style="font-size: 12px; color: #667085; margin-top: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${sale.description}</div>` : ''}
-          <button data-sale-id="${sale.id}" style="border: none; background: none; padding: 0; margin-top: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #2A9D8F;">View details →</button>
-          ${isSelected ? `<div style="font-size: 11px; color: #1A7A6E; margin-top: 4px;">Selected</div>` : ''}
-        </div>
-      `;
-
-      const marker = L.marker([sale.latitude, sale.longitude]);
-      marker.on('click', () => handleMarkerClick(sale.id));
-      marker.bindPopup(popupHtml);
-      marker.on('popupopen', () => {
-        const popupEl = marker.getPopup()?.getElement();
-        if (!popupEl) return;
-        const button = popupEl.querySelector<HTMLButtonElement>('button[data-sale-id]');
-        if (button) {
-          button.onclick = () => navigation.navigate('SaleDetail', { saleId: sale.id });
-        }
-      });
-      marker.addTo(layerGroup);
-    });
-  }, [displayedSales, selectedSaleId, handleMarkerClick, navigation, mapReady]);
-
-  useEffect(() => {
     if (latitude == null || longitude == null) return;
     if (hasCenteredOnLocation.current) return;
     if (mapRef.current) {
@@ -282,16 +318,137 @@ export function HomeScreen({ navigation }: Props) {
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
     const map = mapRef.current;
+    let rafId: number | null = null;
     const handleResize = () => {
-      map.invalidateSize();
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false });
+        rafId = null;
+      });
     };
     const timer = window.setTimeout(handleResize, 0);
     window.addEventListener('resize', handleResize);
     return () => {
       window.clearTimeout(timer);
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener('resize', handleResize);
     };
   }, [mapReady]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('[Map] marker effect fired', {
+        mapReady,
+        displayedSales: displayedSales.length,
+        selectedSaleId,
+      });
+    }
+  }, [displayedSales, mapReady, selectedSaleId]);
+
+  const ensureMarkerRoot = useCallback((map: L.Map) => {
+    const container = map.getContainer();
+    let root = markerRootRef.current;
+    if (!root) {
+      root = document.createElement('div');
+      root.style.position = 'absolute';
+      root.style.inset = '0';
+      root.style.pointerEvents = 'none';
+      root.style.zIndex = '650';
+      container.appendChild(root);
+      markerRootRef.current = root;
+    }
+    return root;
+  }, []);
+
+  const renderMarkers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) {
+      if (typeof window !== 'undefined') {
+        console.log('[Map] renderMarkers skipped', { hasMap: !!map, mapReady });
+      }
+      return;
+    }
+    const root = ensureMarkerRoot(map);
+    root.innerHTML = '';
+    const bounds = map.getBounds();
+    if (typeof window !== 'undefined') {
+      const sample = displayedSales[0];
+      console.log('[Map] rendering markers', {
+        count: displayedSales.length,
+        sample: sample
+          ? {
+            id: sample.id,
+            lat: sample.latitude,
+            lng: sample.longitude,
+            inView:
+              sample.latitude <= bounds.getNorth() &&
+              sample.latitude >= bounds.getSouth() &&
+              sample.longitude <= bounds.getEast() &&
+              sample.longitude >= bounds.getWest(),
+          }
+          : null,
+        bounds: {
+          north: bounds.getNorth(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          west: bounds.getWest(),
+        },
+      });
+    }
+
+    displayedSales.forEach((sale) => {
+      if (!Number.isFinite(sale.latitude) || !Number.isFinite(sale.longitude)) {
+        return;
+      }
+      const point = map.latLngToContainerPoint([sale.latitude, sale.longitude]);
+      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+        return;
+      }
+      const isSelected = sale.id === selectedSaleId;
+      const size = isSelected ? 16 : 12;
+      const dot = document.createElement('div');
+      dot.style.position = 'absolute';
+      dot.style.left = `${point.x - size / 2}px`;
+      dot.style.top = `${point.y - size / 2}px`;
+      dot.style.width = `${size}px`;
+      dot.style.height = `${size}px`;
+      dot.style.borderRadius = '50%';
+      dot.style.background = isSelected ? '#2A9D8F' : '#10B981';
+      dot.style.border = `2px solid ${isSelected ? '#1A7A6E' : '#0F766E'}`;
+      dot.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+      dot.style.pointerEvents = 'auto';
+      dot.style.cursor = 'pointer';
+      dot.title = sale.title;
+      dot.onclick = () => {
+        handleMarkerClick(sale.id);
+        navigation.navigate('SaleDetail', { saleId: sale.id });
+      };
+      root.appendChild(dot);
+    });
+  }, [displayedSales, selectedSaleId, handleMarkerClick, navigation, mapReady, ensureMarkerRoot]);
+
+  useEffect(() => {
+    renderMarkers();
+  }, [renderMarkers]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    const handleMove = () => renderMarkers();
+    const handleMoveLive = () => renderMarkers();
+    map.on('moveend', handleMove);
+    map.on('zoomend', handleMove);
+    map.on('move', handleMoveLive);
+    return () => {
+      map.off('moveend', handleMove);
+      map.off('zoomend', handleMove);
+      map.off('move', handleMoveLive);
+    };
+  }, [mapReady, renderMarkers]);
 
   return (
     <View style={styles.container} testID="home-screen">
@@ -311,6 +468,18 @@ export function HomeScreen({ navigation }: Props) {
             onBoundsChange={handleBoundsChange}
             onMapReady={handleMapReady}
           />
+          <View style={styles.recenterContainer}>
+            <Text
+              onPress={() => {
+                const origin = originRef.current;
+                if (!origin || !mapRef.current) return;
+                mapRef.current.setView(origin, 12);
+              }}
+              style={styles.recenterButton}
+            >
+              Re-Center
+            </Text>
+          </View>
         </View>
         <View style={styles.listPanel} testID="sale-list-panel">
           <FlatList
@@ -364,6 +533,7 @@ const styles = StyleSheet.create({
   mapPanel: {
     width: '60%',
     minHeight: 400,
+    position: 'relative',
   },
   listPanel: {
     width: '40%',
@@ -385,5 +555,27 @@ const styles = StyleSheet.create({
   cardWrapperSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primaryLight,
+  },
+  recenterContainer: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 1000,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  recenterButton: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 12,
   },
 });
