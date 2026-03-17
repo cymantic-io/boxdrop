@@ -26,6 +26,9 @@ interface TopNavBarProps {
 
 export function TopNavBar({ state, navigation }: TopNavBarProps) {
   const activeRoute = state?.routes?.[state.index]?.name;
+  const logoSource = Platform.OS === 'web'
+    ? require('../../assets/boxdrop-mark.svg')
+    : require('../../assets/icon.png');
 
   const handleNavPress = (key: string) => {
     if (activeRoute === key) {
@@ -52,7 +55,7 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
           onPress={() => handleNavPress('HomeTab')}
         >
           <Image
-            source={require('../../assets/icon.png')}
+            source={logoSource}
             style={styles.logo}
           />
           <Text variant="headlineMedium" style={styles.brandText}>
