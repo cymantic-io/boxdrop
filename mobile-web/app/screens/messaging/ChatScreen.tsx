@@ -182,68 +182,70 @@ export function ChatScreen({ route, navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, Platform.OS === 'web' && styles.containerWeb]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      {listing && (
-        <View style={styles.listingHeader}>
-          {listing.images?.[0] && (
-            <Image source={{ uri: listing.images[0].imageUrl }} style={styles.listingImage} />
-          )}
-          <View style={styles.listingInfo}>
-            <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
-            <View style={styles.listingMeta}>
-              <Text style={styles.listingPrice}>${listing.currentPrice.toFixed(2)}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: listing.status === 'AVAILABLE' ? '#ECFDF3' : '#FEE2E2' }]}>
-                <Text style={[styles.statusText, { color: listing.status === 'AVAILABLE' ? '#12B76A' : '#F04438' }]}>
-                  {listing.status}
-                </Text>
+      <View style={styles.chatCard}>
+        {listing && (
+          <View style={styles.listingHeader}>
+            {listing.images?.[0] && (
+              <Image source={{ uri: listing.images[0].imageUrl }} style={styles.listingImage} />
+            )}
+            <View style={styles.listingInfo}>
+              <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
+              <View style={styles.listingMeta}>
+                <Text style={styles.listingPrice}>${listing.currentPrice.toFixed(2)}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: listing.status === 'AVAILABLE' ? '#ECFDF3' : '#FEE2E2' }]}>
+                  <Text style={[styles.statusText, { color: listing.status === 'AVAILABLE' ? '#12B76A' : '#F04438' }]}>
+                    {listing.status}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      )}
+        )}
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        inverted
-        contentContainerStyle={styles.messageList}
-        ListEmptyComponent={
-          <View style={styles.emptyChat}>
-            <Text style={styles.emptyChatText}>No messages yet. Say hello!</Text>
-          </View>
-        }
-      />
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={text}
-          onChangeText={setText}
-          placeholder="Type a message..."
-          placeholderTextColor="#999"
-          multiline
-          maxLength={1000}
-          returnKeyType="default"
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          inverted
+          contentContainerStyle={styles.messageList}
+          ListEmptyComponent={
+            <View style={styles.emptyChat}>
+              <Text style={styles.emptyChatText}>No messages yet. Say hello!</Text>
+            </View>
+          }
         />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!text.trim() || isSending) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={!text.trim() || isSending}
-        >
-          {isSending ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.sendButtonText}>Send</Text>
-          )}
-        </TouchableOpacity>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={text}
+            onChangeText={setText}
+            placeholder="Type a message..."
+            placeholderTextColor={colors.textMuted}
+            multiline
+            maxLength={1000}
+            returnKeyType="default"
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!text.trim() || isSending) && styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!text.trim() || isSending}
+          >
+            {isSending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.sendButtonText}>Send</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -254,6 +256,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  containerWeb: {
+    padding: 16,
+  },
   centered: {
     flex: 1,
     backgroundColor: colors.background,
@@ -261,8 +266,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
+  chatCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+  },
   messageList: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 8,
   },
   messageBubble: {
@@ -277,7 +295,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   otherBubble: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
   },
@@ -306,10 +326,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: 10,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: colors.borderLight,
   },
   textInput: {
     flex: 1,
@@ -319,7 +339,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 15,
     maxHeight: 100,
-    color: '#333',
+    color: colors.textPrimary,
   },
   sendButton: {
     backgroundColor: colors.primary,
@@ -345,7 +365,7 @@ const styles = StyleSheet.create({
   },
   emptyChatText: {
     fontSize: 14,
-    color: '#999',
+    color: colors.textMuted,
   },
   errorText: {
     fontSize: 16,
@@ -378,8 +398,15 @@ const styles = StyleSheet.create({
   counterField: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 16, color: colors.textPrimary },
   counterSubmit: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center' },
   counterSubmitText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  listingHeader: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
-  listingImage: { width: 56, height: 56, borderRadius: 8, backgroundColor: colors.background },
+  listingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  listingImage: { width: 56, height: 56, borderRadius: 12, backgroundColor: colors.background },
   listingInfo: { flex: 1, marginLeft: 12 },
   listingTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },
   listingMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },

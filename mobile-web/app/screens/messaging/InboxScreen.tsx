@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useThreads } from '../../hooks';
 import { colors } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';
 import type { MessageThread, MessagesStackParamList } from '../../types';
+import { WebContentWrapper } from '../../components/WebContentWrapper';
+import { EmptyState } from '../../components';
 
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Inbox'>;
 
@@ -108,37 +111,51 @@ export function InboxScreen({ navigation }: Props) {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={threads ?? []}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={
-          (threads ?? []).length === 0 ? styles.emptyContainer : undefined
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>💬</Text>
-            <Text style={styles.emptyTitle}>No messages yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Conversations with buyers and sellers will appear here
-            </Text>
-          </View>
-        }
-        refreshControl={
-          <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
-        }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-    </View>
+  const isWeb = Platform.OS === 'web';
+
+  const list = (
+    <FlatList
+      data={threads ?? []}
+      keyExtractor={(item) => item.id}
+      renderItem={renderItem}
+      contentContainerStyle={
+        (threads ?? []).length === 0 ? styles.emptyContainer : styles.listContent
+      }
+      ListEmptyComponent={
+        <View style={styles.emptyState}>
+          <EmptyState message="Conversations with buyers and sellers will appear here." />
+        </View>
+      }
+      refreshControl={
+        <RefreshControl refreshing={false} onRefresh={refetch} tintColor={colors.primary} />
+      }
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+    />
   );
+
+  if (isWeb) {
+    return (
+      <View style={styles.container}>
+        <WebContentWrapper>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.heading}>Messages</Text>
+              <Text style={styles.subheading}>All buyer and seller conversations.</Text>
+            </View>
+          </View>
+          <View style={styles.listCard}>{list}</View>
+        </WebContentWrapper>
+      </View>
+    );
+  }
+
+  return <View style={styles.container}>{list}</View>;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -152,12 +169,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
+    backgroundColor: colors.surface,
+    marginHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -180,13 +208,13 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
     marginRight: 8,
   },
   time: {
     fontSize: 12,
-    color: '#999',
+    color: colors.textMuted,
   },
   listingTitle: {
     fontSize: 13,
@@ -195,7 +223,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
   },
   badge: {
     backgroundColor: colors.primary,
@@ -212,9 +240,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   separator: {
-    height: 1,
-    backgroundColor: '#F0F0F0',
-    marginLeft: 76,
+    height: 0,
   },
   emptyContainer: {
     flex: 1,
@@ -225,20 +251,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+  listContent: {
+    paddingBottom: 16,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+  headerRow: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
+  heading: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  subheading: {
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  listCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    overflow: 'hidden',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    paddingVertical: 4,
   },
   errorText: {
     fontSize: 16,
