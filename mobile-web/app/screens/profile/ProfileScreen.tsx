@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Avatar, Card, Text, List, Divider, ActivityIndicator, Portal, Dialog, Button } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCurrentUser } from '../../hooks';
@@ -25,6 +25,7 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 export function ProfileScreen({ navigation }: Props) {
+  const isWeb = Platform.OS === 'web';
   const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
@@ -73,76 +74,105 @@ export function ProfileScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <WebContentWrapper>
-      <Card style={styles.profileCard} mode="outlined">
-        <Card.Content style={styles.profileContent}>
-          <Avatar.Text
-            size={80}
-            label={initial}
-            style={styles.avatar}
-            labelStyle={styles.avatarLabel}
-          />
-          <Text variant="headlineSmall" style={styles.displayName}>{user?.displayName ?? 'User'}</Text>
-          <Text variant="bodyMedium" style={styles.email}>{user?.email}</Text>
-
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text variant="titleLarge" style={styles.statValue}>{user?.trustScore ?? 50}</Text>
-              <Text variant="labelSmall" style={styles.statLabel}>Trust Score</Text>
-            </View>
-            <Divider style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text variant="titleLarge" style={styles.statValue}>{user?.reviewCount ?? 0}</Text>
-              <Text variant="labelSmall" style={styles.statLabel}>Reviews</Text>
-            </View>
-            <Divider style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text variant="titleLarge" style={styles.statValue}>
-                {user?.averageRating ? user.averageRating.toFixed(1) : '—'}
-              </Text>
-              <Text variant="labelSmall" style={styles.statLabel}>Avg Rating</Text>
-            </View>
+        <View style={styles.headerRow}>
+          <View>
+            <Text variant="headlineMedium" style={styles.pageTitle}>Profile</Text>
+            <Text variant="bodySmall" style={styles.pageSubtitle}>Manage your account and activity</Text>
           </View>
-        </Card.Content>
-      </Card>
+        </View>
 
-      <Card style={styles.menuCard} mode="outlined">
-        {MENU_ITEMS.map((item, index) => (
-          <React.Fragment key={item.route}>
-            <List.Item
-              title={item.label}
-              left={(props) => <List.Icon {...props} icon={item.icon} color={colors.textSecondary} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate(item.route as any)}
-              titleStyle={styles.menuLabel}
-            />
-            {index < MENU_ITEMS.length - 1 && <Divider style={styles.divider} />}
-          </React.Fragment>
-        ))}
-      </Card>
+        <View style={[styles.profileGrid, isWeb ? styles.profileGridWeb : styles.profileGridMobile]}>
+          <Card style={styles.profileCard} mode="outlined">
+            <View style={styles.profileAccent} />
+            <Card.Content style={styles.profileContent}>
+              <Avatar.Text
+                size={80}
+                label={initial}
+                style={styles.avatar}
+                labelStyle={styles.avatarLabel}
+              />
+              <Text variant="headlineSmall" style={styles.displayName}>{user?.displayName ?? 'User'}</Text>
+              <Text variant="bodyMedium" style={styles.email}>{user?.email}</Text>
 
-      <Card style={styles.logoutCard} mode="outlined">
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={showLogoutDialog}
-          activeOpacity={0.6}
-          testID="logout-menu-button"
-        >
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </Card>
+              <View style={styles.statsRow}>
+                <View style={styles.stat}>
+                  <Text variant="titleLarge" style={styles.statValue}>{user?.trustScore ?? 50}</Text>
+                  <Text variant="labelSmall" style={styles.statLabel}>Trust Score</Text>
+                </View>
+                <Divider style={styles.statDivider} />
+                <View style={styles.stat}>
+                  <Text variant="titleLarge" style={styles.statValue}>{user?.reviewCount ?? 0}</Text>
+                  <Text variant="labelSmall" style={styles.statLabel}>Reviews</Text>
+                </View>
+                <Divider style={styles.statDivider} />
+                <View style={styles.stat}>
+                  <Text variant="titleLarge" style={styles.statValue}>
+                    {user?.averageRating ? user.averageRating.toFixed(1) : '—'}
+                  </Text>
+                  <Text variant="labelSmall" style={styles.statLabel}>Avg Rating</Text>
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
 
-      <Portal>
-        <Dialog visible={logoutDialogVisible} onDismiss={hideLogoutDialog}>
-          <Dialog.Title>Log Out</Dialog.Title>
-          <Dialog.Content>
-            <Text>Are you sure you want to log out?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={hideLogoutDialog}>Cancel</Button>
-            <Button onPress={handleLogout} testID="logout-confirm-button">Log Out</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+          <View style={styles.menuColumn}>
+            <Card style={styles.menuCard} mode="outlined">
+              {MENU_ITEMS.map((item, index) => (
+                <React.Fragment key={item.route}>
+                  <List.Item
+                    title={item.label}
+                    left={(props) => <List.Icon {...props} icon={item.icon} color={colors.primary} />}
+                    right={(props) => <List.Icon {...props} icon="chevron-right" />}
+                    onPress={() => navigation.navigate(item.route as any)}
+                    titleStyle={styles.menuLabel}
+                    style={styles.menuItem}
+                  />
+                  {index < MENU_ITEMS.length - 1 && <Divider style={styles.divider} />}
+                </React.Fragment>
+              ))}
+            </Card>
+
+            <Card style={styles.logoutCard} mode="outlined">
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={showLogoutDialog}
+                activeOpacity={0.6}
+                testID="logout-menu-button"
+              >
+                <Text style={styles.logoutText}>Log Out</Text>
+              </TouchableOpacity>
+            </Card>
+          </View>
+        </View>
+
+        <Portal>
+          <Dialog visible={logoutDialogVisible} onDismiss={hideLogoutDialog} style={styles.logoutDialog}>
+            <Dialog.Title style={styles.logoutDialogTitle}>Log out?</Dialog.Title>
+            <Dialog.Content>
+              <Text style={styles.logoutDialogBody}>You can sign back in anytime with a one‑time code.</Text>
+            </Dialog.Content>
+            <Dialog.Actions style={styles.logoutDialogActions}>
+              <Button
+                onPress={hideLogoutDialog}
+                mode="outlined"
+                textColor={colors.textSecondary}
+                style={styles.logoutDialogCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                onPress={handleLogout}
+                testID="logout-confirm-button"
+                mode="contained"
+                buttonColor={colors.error}
+                textColor={colors.white}
+                style={styles.logoutDialogConfirm}
+              >
+                Log Out
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
       </WebContentWrapper>
     </ScrollView>
   );
@@ -154,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   centered: {
     flex: 1,
@@ -164,16 +194,32 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   profileCard: {
-    marginBottom: 16,
+    flex: 1.1,
     backgroundColor: colors.surface,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderColor: colors.borderLight,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
   profileContent: {
     alignItems: 'center',
     paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  profileAccent: {
+    height: 90,
+    backgroundColor: colors.darkSurface,
   },
   avatar: {
     backgroundColor: colors.primaryLight,
     marginBottom: 12,
+    marginTop: -40,
+    borderWidth: 3,
+    borderColor: colors.surface,
   },
   avatarLabel: {
     color: colors.primary,
@@ -192,6 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
+    paddingTop: 4,
   },
   stat: {
     flex: 1,
@@ -212,7 +259,17 @@ const styles = StyleSheet.create({
   },
   menuCard: {
     backgroundColor: colors.surface,
+    borderRadius: 20,
     overflow: 'hidden',
+    borderColor: colors.borderLight,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+  },
+  menuItem: {
+    paddingVertical: 4,
   },
   menuLabel: {
     color: colors.textPrimary,
@@ -223,7 +280,14 @@ const styles = StyleSheet.create({
   logoutCard: {
     marginTop: 16,
     backgroundColor: colors.surface,
+    borderRadius: 20,
     overflow: 'hidden',
+    borderColor: colors.borderLight,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   logoutButton: {
     paddingHorizontal: 20,
@@ -234,6 +298,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#DC2626',
+  },
+  logoutDialog: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+  },
+  logoutDialogTitle: {
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  logoutDialogBody: {
+    color: colors.textSecondary,
+  },
+  logoutDialogActions: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  logoutDialogCancel: {
+    borderRadius: 12,
+    borderColor: colors.borderLight,
+  },
+  logoutDialogConfirm: {
+    borderRadius: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  pageTitle: {
+    color: colors.textPrimary,
+    fontWeight: '800',
+  },
+  pageSubtitle: {
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  profileGrid: {
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  profileGridWeb: {
+    flexDirection: 'row',
+  },
+  profileGridMobile: {
+    flexDirection: 'column',
+  },
+  menuColumn: {
+    flex: 1,
+    gap: 16,
   },
   errorText: {
     color: colors.error,
