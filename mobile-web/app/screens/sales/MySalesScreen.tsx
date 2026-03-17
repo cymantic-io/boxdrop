@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import BoxdropIcon from '../../../assets/boxdrop-icon.svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { Button, Text } from 'react-native-paper';
@@ -102,6 +103,8 @@ export function MySalesScreen({ navigation }: Props) {
 
   const isWeb = Platform.OS === 'web';
 
+  const emptyState = <EmptyState message={EMPTY_MESSAGES[selectedCategory]} />;
+
   const saleList = (
     <FlatList
       data={currentSales}
@@ -113,9 +116,7 @@ export function MySalesScreen({ navigation }: Props) {
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
       }
-      ListEmptyComponent={
-        <EmptyState message={EMPTY_MESSAGES[selectedCategory]} icon="📦" />
-      }
+      ListEmptyComponent={emptyState}
     />
   );
 
@@ -124,21 +125,25 @@ export function MySalesScreen({ navigation }: Props) {
       <View style={styles.container}>
         <WebContentWrapper>
           <View style={styles.webHeader}>
-            <Text variant="headlineSmall" style={styles.heading}>
-              My Sales
-            </Text>
+            <View>
+              <Text variant="headlineSmall" style={styles.heading}>
+                My Sales
+              </Text>
+              <Text style={styles.subheading}>Track activity and manage listings.</Text>
+            </View>
             <Button
               mode="contained"
               icon="plus"
               onPress={handleNewSale}
               buttonColor={colors.primary}
               textColor={colors.textOnPrimary}
+              style={styles.newSaleButton}
             >
               New Sale
             </Button>
           </View>
           <View style={styles.webLayout}>
-            <View style={styles.sidebar}>
+            <View style={styles.sidebarCard}>
               {CATEGORY_ORDER.map((cat) => {
                 const isSelected = cat === selectedCategory;
                 return (
@@ -156,13 +161,18 @@ export function MySalesScreen({ navigation }: Props) {
                         isSelected && styles.sidebarTextSelected,
                       ]}
                     >
-                      {CATEGORY_LABELS[cat]} ({groups[cat].length})
+                      {CATEGORY_LABELS[cat]}
                     </Text>
+                    <View style={[styles.countPill, isSelected && styles.countPillActive]}>
+                      <Text style={[styles.countText, isSelected && styles.countTextActive]}>
+                        {groups[cat].length}
+                      </Text>
+                    </View>
                   </Pressable>
                 );
               })}
             </View>
-            <View style={styles.webContent}>{saleList}</View>
+            <View style={styles.webContentCard}>{saleList}</View>
           </View>
         </WebContentWrapper>
       </View>
@@ -224,28 +234,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
   heading: {
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  subheading: {
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  newSaleButton: {
+    borderRadius: 12,
   },
   webLayout: {
     flex: 1,
     flexDirection: 'row',
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  sidebar: {
-    width: 200,
-    paddingTop: 8,
-    paddingLeft: 16,
-    paddingRight: 8,
+  sidebarCard: {
+    width: 220,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 4,
   },
   sidebarItemSelected: {
@@ -260,8 +290,35 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '700',
   },
-  webContent: {
+  countPill: {
+    backgroundColor: colors.borderLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  countPillActive: {
+    backgroundColor: colors.primary,
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  countTextActive: {
+    color: colors.white,
+  },
+  webContentCard: {
     flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   // Native layout
   nativeHeader: {

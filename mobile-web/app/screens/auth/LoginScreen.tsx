@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -13,6 +12,7 @@ import { loginSendCode, loginStart } from '../../services/api';
 import { colors } from '../../theme';
 import type { AuthStackParamList } from '../../types';
 import { useAuthStore } from '../../stores/useAuthStore';
+import BoxdropIcon from '../../../assets/boxdrop-icon.svg';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -80,7 +80,7 @@ export function LoginScreen({ navigation }: Props) {
       </View>
       <View style={styles.content}>
         <View style={styles.brandRow}>
-          <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+          <BoxdropIcon width={64} height={64} style={styles.logoImage} />
           <View>
             <Text variant="headlineMedium" style={styles.logo}>BoxDrop</Text>
             <Text variant="bodySmall" style={styles.subtitle}>Sign in to save listings and message sellers.</Text>

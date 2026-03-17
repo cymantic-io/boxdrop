@@ -4,7 +4,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Image,
 } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,6 +11,7 @@ import { AuthStackParamList } from '../../types';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { loginSendCode } from '../../services/api';
 import { colors } from '../../theme';
+import BoxdropIcon from '../../../assets/boxdrop-icon.svg';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyCode'>;
 
@@ -78,7 +78,7 @@ export function VerifyCodeScreen({ route }: Props) {
       </View>
       <View style={styles.content}>
         <View style={styles.brandRow}>
-          <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+          <BoxdropIcon width={64} height={64} style={styles.logoImage} />
           <View>
             <Text variant="headlineMedium" style={styles.logo}>BoxDrop</Text>
             <Text variant="bodySmall" style={styles.subtitle}>Verify to finish signing in.</Text>

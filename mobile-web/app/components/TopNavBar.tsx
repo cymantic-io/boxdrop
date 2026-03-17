@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import { colors } from '../theme';
+import BoxdropIcon from '../../assets/boxdrop-icon.svg';
 
 interface NavItem {
   key: string;
@@ -26,9 +27,6 @@ interface TopNavBarProps {
 
 export function TopNavBar({ state, navigation }: TopNavBarProps) {
   const activeRoute = state?.routes?.[state.index]?.name;
-  const logoSource = Platform.OS === 'web'
-    ? require('../../assets/boxdrop-mark.svg')
-    : require('../../assets/icon.png');
 
   const handleNavPress = (key: string) => {
     if (activeRoute === key) {
@@ -54,10 +52,7 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
           style={styles.brand}
           onPress={() => handleNavPress('HomeTab')}
         >
-          <Image
-            source={logoSource}
-            style={styles.logo}
-          />
+          <BoxdropIcon width={36} height={36} style={styles.logo} />
           <Text variant="headlineMedium" style={styles.brandText}>
             BoxDrop
           </Text>

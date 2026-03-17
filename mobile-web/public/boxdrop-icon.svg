@@ -1,0 +1,30 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bd-top" x1="64" y1="28" x2="192" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF4D00"/>
+      <stop offset="1" stop-color="#FF9A00"/>
+    </linearGradient>
+    <linearGradient id="bd-left" x1="28" y1="92" x2="152" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE66D"/>
+      <stop offset="1" stop-color="#FFB000"/>
+    </linearGradient>
+    <linearGradient id="bd-right" x1="128" y1="92" x2="228" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00D1FF"/>
+      <stop offset="1" stop-color="#0077FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded box top -->
+  <path d="M128 24L220 70C224 72 224 78 220 80L128 126L36 80C32 78 32 72 36 70L128 24Z" fill="url(#bd-top)"/>
+  <!-- Left face -->
+  <path d="M36 80L128 126V224L36 178C32 176 30 172 30 168V88C30 84 32 81 36 80Z" fill="url(#bd-left)"/>
+  <!-- Right face -->
+  <path d="M220 80L128 126V224L220 178C224 176 226 172 226 168V88C226 84 224 81 220 80Z" fill="url(#bd-right)"/>
+
+  <!-- Simple lid seam -->
+  <path d="M128 126V144" stroke="rgba(0,0,0,0.15)" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Map pin -->
+  <path d="M128 92C110.326 92 96 106.326 96 124C96 146.667 128 182 128 182C128 182 160 146.667 160 124C160 106.326 145.674 92 128 92Z" fill="#1F2937"/>
+  <circle cx="128" cy="124" r="9" fill="#FFFFFF"/>
+</svg>

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { colors } from '../theme';
+import BoxdropIcon from '../../assets/boxdrop-icon.svg';
 
 interface EmptyStateProps {
   message: string;
@@ -14,7 +15,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ message, icon, testID })
     {icon ? (
       <Text style={styles.icon}>{icon}</Text>
     ) : (
-      <Image source={require('../../assets/icon.png')} style={styles.logoImage} />
+      <BoxdropIcon width={80} height={80} style={styles.logoImage} />
     )}
     <Text variant="bodyLarge" style={styles.message}>{message}</Text>
   </View>

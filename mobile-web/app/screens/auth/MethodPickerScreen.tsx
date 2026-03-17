@@ -4,12 +4,12 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Image,
 } from 'react-native';
 import { Button, Text, HelperText, List } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
 import { loginSendCode } from '../../services/api';
+import BoxdropIcon from '../../../assets/boxdrop-icon.svg';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'MethodPicker'>;
 
@@ -50,7 +50,7 @@ export function MethodPickerScreen({ navigation, route }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+        <BoxdropIcon width={64} height={64} style={styles.logoImage} />
         <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
 
         <Text style={styles.instructions}>Choose a verification method</Text>
@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
   },
   logoImage: {
-    width: 100,
-    height: 100,
+    width: 64,
+    height: 64,
     alignSelf: 'center',
     marginBottom: 12,
-    borderRadius: 24,
+    borderRadius: 18,
   },
   logo: {
     textAlign: 'center',
