@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { Button, Text } from 'react-native-paper';
 import { SaleCard, EmptyState, LoadingScreen } from '../../components';
 import { WebContentWrapper } from '../../components/WebContentWrapper';
@@ -70,12 +71,16 @@ export function MySalesScreen({ navigation }: Props) {
     }
   }, [isAuthenticated, setShowAuthPrompt]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!isAuthenticated) {
+        setShowAuthPrompt(true, 'MySalesTab');
+      }
+    }, [isAuthenticated, setShowAuthPrompt])
+  );
+
   const [selectedCategory, setSelectedCategory] = useState<Category>('active');
   const { data: sales, isLoading, refetch, isRefetching } = useMySales({ enabled: isAuthenticated });
-
-  if (!isAuthenticated) {
-    return <LoadingScreen />;
-  }
 
   const groups = useMemo(() => categorizeSales(sales ?? []), [sales]);
   const currentSales = groups[selectedCategory];
@@ -91,7 +96,7 @@ export function MySalesScreen({ navigation }: Props) {
     navigation.navigate('CreateSale');
   }, [navigation]);
 
-  if (isLoading && !isRefetching) {
+  if (!isAuthenticated || (isLoading && !isRefetching)) {
     return <LoadingScreen />;
   }
 
