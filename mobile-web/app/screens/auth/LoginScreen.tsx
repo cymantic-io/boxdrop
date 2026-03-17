@@ -151,16 +151,17 @@ export function LoginScreen({ navigation }: Props) {
           >
             Continue
           </Button>
-        </View>
 
-        <Button
-          mode="text"
-          onPress={() => navigation.navigate('Register')}
-          labelStyle={styles.linkText}
-          style={styles.registerButton}
-        >
-          New here? <Text style={styles.linkBold}>Create an account</Text>
-        </Button>
+          <Button
+            mode="text"
+            onPress={() => navigation.navigate('Register')}
+            labelStyle={styles.registerLinkText}
+            style={styles.registerLink}
+            contentStyle={styles.registerButtonContent}
+          >
+            Create an account
+          </Button>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -203,8 +204,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 28,
-    paddingTop: 120,
-    paddingBottom: 36,
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   brandRow: {
     flexDirection: 'row',
@@ -270,8 +271,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  registerButton: {
-    marginTop: 6,
+  registerButtonContent: {
+    height: 40,
+  },
+  registerLink: {
+    marginTop: 4,
+  },
+  registerLinkText: {
+    color: colors.accent,
+    fontWeight: '600',
   },
   loginError: {
     textAlign: 'center',

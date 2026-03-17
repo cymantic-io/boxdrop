@@ -159,6 +159,24 @@ function MainTabs() {
     setNavigationState(tab, null, null);
   };
 
+  const handleStateChange = (state: any) => {
+    if (!state) return;
+    const stack = state.routes?.[state.index];
+    if (!stack?.state) {
+      if (stack?.name) {
+        setNavigationState(stack.name, null, null);
+      }
+      return;
+    }
+    const stackState = stack.state;
+    const activeRoute = stackState.routes?.[stackState.index];
+    const routeName = activeRoute?.name ?? null;
+    const params = activeRoute?.params ?? null;
+    if (stack.name && routeName) {
+      setNavigationState(stack.name, routeName, params);
+    }
+  };
+
   return (
     <Tab.Navigator
       key={forceReset}
@@ -170,6 +188,7 @@ function MainTabs() {
           if (tabName && tabName !== currentTab) {
             handleTabChange(tabName);
           }
+          handleStateChange(e.state);
         },
       })}
       layout={isWeb ? ({ children, state, navigation, descriptors }: any) => (
@@ -298,6 +317,6 @@ const styles = StyleSheet.create({
   },
   authOverlayContent: {
     flex: 1,
-    minHeight: 420,
+    minHeight: 520,
   },
 });

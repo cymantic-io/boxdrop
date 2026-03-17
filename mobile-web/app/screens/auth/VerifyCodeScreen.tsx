@@ -11,6 +11,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { loginSendCode } from '../../services/api';
+import { colors } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyCode'>;
 
@@ -64,6 +65,8 @@ export function VerifyCodeScreen({ route }: Props) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <View style={styles.backgroundOrbTop} />
+      <View style={styles.backgroundOrbBottom} />
       <View style={styles.closeButtonContainer}>
         <Button
           mode="text"
@@ -74,68 +77,113 @@ export function VerifyCodeScreen({ route }: Props) {
         </Button>
       </View>
       <View style={styles.content}>
-        <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
-        <Text variant="headlineLarge" style={styles.logo}>BoxDrop</Text>
+        <View style={styles.brandRow}>
+          <Image source={require('../../../assets/icon.png')} style={styles.logoImage} />
+          <View>
+            <Text variant="headlineMedium" style={styles.logo}>BoxDrop</Text>
+            <Text variant="bodySmall" style={styles.subtitle}>Verify to finish signing in.</Text>
+          </View>
+        </View>
 
-        <Text style={styles.instructions}>{getInstructions()}</Text>
+        <View style={styles.formCard}>
+          <Text variant="titleMedium" style={styles.formTitle}>Verification code</Text>
+          <Text style={styles.instructions}>{getInstructions()}</Text>
 
-        <TextInput
-          testID="verify-code"
-          mode="flat"
-          label="Verification Code"
-          keyboardType="number-pad"
-          maxLength={6}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={handleVerify}
-          value={code}
-          onChangeText={setCode}
-          error={!!error}
-          style={[styles.input, styles.codeInput]}
-          textColor="#FFFFFF"
-          placeholderTextColor="rgba(255,255,255,0.4)"
-          theme={{ colors: { onSurfaceVariant: 'rgba(255,255,255,0.5)', primary: '#F4A261', surfaceVariant: 'rgba(255,255,255,0.12)' } }}
-        />
+          <TextInput
+            testID="verify-code"
+            mode="outlined"
+            keyboardType="number-pad"
+            maxLength={6}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleVerify}
+            value={code}
+            onChangeText={setCode}
+            error={!!error}
+            style={[styles.input, styles.codeInput]}
+            textColor={colors.white}
+            placeholder="Enter 6-digit code"
+            placeholderTextColor="rgba(255,255,255,0.45)"
+            outlineStyle={styles.inputOutline}
+            theme={inputTheme}
+          />
 
-        <HelperText type="error" visible={!!error}>{error}</HelperText>
-        <HelperText type="info" visible={!!resendMessage} style={styles.resendMessage}>{resendMessage}</HelperText>
+          <View style={styles.errorSlot}>
+            <HelperText type="error" visible={!!error}>
+              {error || ' '}
+            </HelperText>
+          </View>
+          <HelperText type="info" visible={!!resendMessage} style={styles.resendMessage}>
+            {resendMessage}
+          </HelperText>
 
-        <Button
-          testID="verify-submit"
-          mode="contained"
-          onPress={handleVerify}
-          loading={loading}
-          disabled={loading || code.length !== 6}
-          style={styles.button}
-          contentStyle={styles.buttonContent}
-          labelStyle={styles.buttonText}
-        >
-          Verify
-        </Button>
-
-        {(method === 'EMAIL_OTP' || method === 'SMS_OTP') && (
           <Button
-            mode="text"
-            onPress={handleResend}
-            labelStyle={styles.linkText}
+            testID="verify-submit"
+            mode="contained"
+            onPress={handleVerify}
+            loading={loading}
+            disabled={loading || code.length !== 6}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.buttonText}
           >
-            Resend Code
+            Verify
           </Button>
-        )}
+
+          {(method === 'EMAIL_OTP' || method === 'SMS_OTP') && (
+            <Button
+              mode="text"
+              onPress={handleResend}
+              labelStyle={styles.linkText}
+              style={styles.registerLink}
+              contentStyle={styles.registerButtonContent}
+            >
+              Resend Code
+            </Button>
+          )}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
+const inputTheme = {
+  colors: {
+    primary: colors.accent,
+    outline: 'rgba(255,255,255,0.2)',
+    onSurfaceVariant: 'rgba(255,255,255,0.65)',
+    surface: 'rgba(255,255,255,0.05)',
+    background: '#162A33',
+  },
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#264653',
+    backgroundColor: '#162A33',
+  },
+  backgroundOrbTop: {
+    position: 'absolute',
+    top: -120,
+    right: -120,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(42,157,143,0.35)',
+  },
+  backgroundOrbBottom: {
+    position: 'absolute',
+    bottom: -140,
+    left: -140,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(244,162,97,0.25)',
   },
   closeButtonContainer: {
     position: 'absolute',
-    top: 50,
-    right: 16,
+    top: 18,
+    right: 12,
     zIndex: 100,
   },
   closeButton: {
@@ -146,30 +194,55 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 28,
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 24,
   },
   logoImage: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-    marginBottom: 12,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    backgroundColor: colors.white,
   },
   logo: {
-    textAlign: 'center',
-    marginBottom: 40,
     color: '#FFFFFF',
     fontWeight: '800',
     letterSpacing: 1,
   },
+  subtitle: {
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 4,
+  },
+  formCard: {
+    backgroundColor: 'rgba(12, 24, 30, 0.7)',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 16,
+  },
+  formTitle: {
+    color: colors.white,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
   instructions: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   input: {
-    marginBottom: 2,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginBottom: 4,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  inputOutline: {
+    borderRadius: 12,
   },
   codeInput: {
     textAlign: 'center',
@@ -177,10 +250,10 @@ const styles = StyleSheet.create({
     letterSpacing: 8,
   },
   button: {
-    marginTop: 16,
-    marginBottom: 8,
-    borderRadius: 12,
-    backgroundColor: '#2A9D8F',
+    marginTop: 8,
+    marginBottom: 4,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
   },
   buttonContent: {
     height: 52,
@@ -191,11 +264,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   linkText: {
-    color: 'rgba(255,255,255,0.6)',
+    color: colors.accent,
     fontSize: 14,
   },
   resendMessage: {
-    color: '#2A9D8F',
+    color: colors.primary,
     textAlign: 'center',
+  },
+  errorSlot: {
+    minHeight: 22,
+    justifyContent: 'center',
+  },
+  registerButtonContent: {
+    height: 40,
+  },
+  registerLink: {
+    marginTop: 4,
   },
 });

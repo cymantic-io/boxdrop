@@ -65,6 +65,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setShowAuthPrompt: (show, redirectRoute) => {
     if (get().isLoggingOut) return;
     set({ showAuthPrompt: show, authRedirectRoute: show ? redirectRoute ?? null : null });
+    if (!show) {
+      try {
+        const { navigationRef } = require('../../App');
+        const { currentTab, currentRoute, params } = useNavigationStore.getState();
+        if (navigationRef?.current?.isReady()) {
+          if (currentRoute) {
+            navigationRef.current.navigate(currentTab, { screen: currentRoute, params: params ?? undefined });
+          } else if (currentTab) {
+            navigationRef.current.navigate(currentTab);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to restore navigation after auth dismiss', e);
+      }
+    }
   },
 
   setTokens: (accessToken, refreshToken, userId) => {
