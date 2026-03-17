@@ -147,7 +147,6 @@ export function HomeScreen({ navigation }: Props) {
   const initialZoomRef = useRef<number>(mapZoom);
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
-  const markerRootRef = useRef<HTMLDivElement | null>(null);
   const hasCenteredOnLocation = useRef(false);
   const [mapReady, setMapReady] = useState(false);
   const latRef = useRef<number | null>(latitude ?? null);
@@ -205,9 +204,6 @@ export function HomeScreen({ navigation }: Props) {
 
   const handleMapReady = useCallback((map: L.Map) => {
     mapRef.current = map;
-    if (!markerLayerRef.current) {
-      markerLayerRef.current = L.layerGroup().addTo(map);
-    }
     setMapReady(true);
     if (savedView?.center) {
       map.setView(savedView.center, savedView.zoom ?? 12);
@@ -335,64 +331,38 @@ export function HomeScreen({ navigation }: Props) {
     };
   }, [mapReady]);
 
-  useEffect(() => {
-  }, [displayedSales, mapReady, selectedSaleId]);
-
-  const ensureMarkerRoot = useCallback((map: L.Map) => {
-    const container = map.getContainer();
-    let root = markerRootRef.current;
-    if (!root) {
-      root = document.createElement('div');
-      root.style.position = 'absolute';
-      root.style.inset = '0';
-      root.style.pointerEvents = 'none';
-      root.style.zIndex = '650';
-      container.appendChild(root);
-      markerRootRef.current = root;
-    }
-    return root;
-  }, []);
-
   const renderMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map || !mapReady) {
       return;
     }
-    const root = ensureMarkerRoot(map);
-    root.innerHTML = '';
-    const bounds = map.getBounds();
-    void bounds;
+    if (!markerLayerRef.current) {
+      markerLayerRef.current = L.layerGroup().addTo(map);
+    }
+    const layerGroup = markerLayerRef.current;
+    layerGroup.clearLayers();
 
     displayedSales.forEach((sale) => {
       if (!Number.isFinite(sale.latitude) || !Number.isFinite(sale.longitude)) {
         return;
       }
-      const point = map.latLngToContainerPoint([sale.latitude, sale.longitude]);
-      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
-        return;
-      }
       const isSelected = sale.id === selectedSaleId;
       const size = isSelected ? 16 : 12;
-      const dot = document.createElement('div');
-      dot.style.position = 'absolute';
-      dot.style.left = `${point.x - size / 2}px`;
-      dot.style.top = `${point.y - size / 2}px`;
-      dot.style.width = `${size}px`;
-      dot.style.height = `${size}px`;
-      dot.style.borderRadius = '50%';
-      dot.style.background = isSelected ? '#2A9D8F' : '#10B981';
-      dot.style.border = `2px solid ${isSelected ? '#1A7A6E' : '#0F766E'}`;
-      dot.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
-      dot.style.pointerEvents = 'auto';
-      dot.style.cursor = 'pointer';
-      dot.title = sale.title;
-      dot.onclick = () => {
+      const marker = L.circleMarker([sale.latitude, sale.longitude], {
+        radius: size / 2,
+        color: isSelected ? '#1A7A6E' : '#0F766E',
+        weight: 2,
+        fillColor: isSelected ? '#2A9D8F' : '#10B981',
+        fillOpacity: 0.95,
+        pane: 'salesMarkers',
+      });
+      marker.on('click', () => {
         handleMarkerClick(sale.id);
         navigation.navigate('SaleDetail', { saleId: sale.id });
-      };
-      root.appendChild(dot);
+      });
+      marker.addTo(layerGroup);
     });
-  }, [displayedSales, selectedSaleId, handleMarkerClick, navigation, mapReady, ensureMarkerRoot]);
+  }, [displayedSales, selectedSaleId, handleMarkerClick, navigation, mapReady]);
 
   useEffect(() => {
     renderMarkers();
@@ -402,26 +372,25 @@ export function HomeScreen({ navigation }: Props) {
     if (!mapReady || !mapRef.current) return;
     const map = mapRef.current;
     const handleMove = () => renderMarkers();
-    const handleMoveLive = () => renderMarkers();
     map.on('moveend', handleMove);
     map.on('zoomend', handleMove);
-    map.on('move', handleMoveLive);
     return () => {
       map.off('moveend', handleMove);
       map.off('zoomend', handleMove);
-      map.off('move', handleMoveLive);
     };
   }, [mapReady, renderMarkers]);
 
   return (
     <View style={styles.container} testID="home-screen">
       <View style={styles.searchBar}>
-        <SearchBar
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholder="Search sales and listings..."
-          testID="search-input"
-        />
+        <View style={styles.searchCard}>
+          <SearchBar
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search sales and listings..."
+            testID="search-input"
+          />
+        </View>
       </View>
       <View style={styles.content}>
         <View style={styles.mapPanel}>
@@ -445,6 +414,17 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         </View>
         <View style={styles.listPanel} testID="sale-list-panel">
+          <View style={styles.listHeader}>
+            <View>
+              <Text style={styles.listTitle}>Sales in view</Text>
+              <Text style={styles.listSubtitle}>
+                {displayedSales.length} active sale{displayedSales.length === 1 ? '' : 's'}
+              </Text>
+            </View>
+            <View style={styles.listCountPill}>
+              <Text style={styles.listCountText}>{displayedSales.length}</Text>
+            </View>
+          </View>
           <FlatList
             ref={flatListRef}
             data={displayedSales}
@@ -486,28 +466,93 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   searchBar: {
-    backgroundColor: colors.darkSurface,
-    paddingBottom: 4,
+    backgroundColor: colors.background,
+    paddingBottom: 12,
+    paddingTop: 12,
+    paddingHorizontal: 16,
+  },
+  searchCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   content: {
     flex: 1,
     flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   mapPanel: {
     width: '60%',
     minHeight: 400,
     position: 'relative',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    backgroundColor: colors.surface,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+    marginRight: 16,
   },
   listPanel: {
     width: '40%',
     backgroundColor: colors.surface,
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     minHeight: 400,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   list: {
     flexGrow: 1,
     padding: 16,
+  },
+  listHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  listSubtitle: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  listCountPill: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  listCountText: {
+    color: colors.primaryDark,
+    fontWeight: '700',
+    fontSize: 12,
   },
   cardWrapper: {
     borderRadius: 8,
