@@ -99,12 +99,6 @@ jobs:
       - run: npm ci
         working-directory: mobile-web
 
-      # Build and start Expo web in background
-      - run: npx expo export
-        working-directory: mobile-web
-      - run: npx serve dist -l 8081 -s &
-        working-directory: mobile-web
-
       # Wait for services to be ready
       - name: Wait for services
         run: |
