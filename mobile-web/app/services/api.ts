@@ -1,4 +1,4 @@
-import axios from 'axios/dist/esm/axios.js';
+import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import {
   ApiResponse,

@@ -37,7 +37,10 @@ export function TopNavBar() {
     },
     () => {
       const { navigationRef } = require('../../App');
-      return getActiveTabName(navigationRef?.getRootState?.());
+      if (!navigationRef?.isReady?.()) {
+        return 'HomeTab';
+      }
+      return getActiveTabName(navigationRef.getRootState());
     },
     () => 'HomeTab'
   );
@@ -46,18 +49,18 @@ export function TopNavBar() {
     const { navigationRef } = require('../../App');
     const rootRoute = ROOT_ROUTES[key];
 
-    if (!navigationRef?.current?.navigate) {
+    if (!navigationRef?.isReady?.()) {
       return;
     }
 
-    const currentRoute = getActiveLeafRouteName(navigationRef.current?.getRootState?.());
+    const currentRoute = getActiveLeafRouteName(navigationRef.getRootState());
 
     if (activeTab === key && currentRoute && currentRoute !== rootRoute) {
-      navigationRef.current.navigate(key, { screen: rootRoute });
+      navigationRef.navigate(key, { screen: rootRoute });
       return;
     }
 
-    navigationRef.current.navigate(key);
+    navigationRef.navigate(key);
   };
 
   return (

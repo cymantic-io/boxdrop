@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useQueryClient } from '@tanstack/react-query/build/legacy/index.cjs';
+import { useQueryClient } from '@tanstack/react-query';
 import { useThread, useSendMessage, useAcceptOffer, useRejectOffer, useCounterOffer, useListing } from '../../hooks';
 import { colors } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -21,7 +21,8 @@ import type { Message, MessagesStackParamList } from '../../types';
 type Props = NativeStackScreenProps<MessagesStackParamList, 'Chat'>;
 
 export function ChatScreen({ route, navigation }: Props) {
-  const { threadId, listingTitle } = route.params;
+  const threadId = route.params?.threadId;
+  const listingTitle = route.params?.listingTitle;
   const [text, setText] = useState('');
   const [counterAmount, setCounterAmount] = useState('');
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
@@ -37,10 +38,26 @@ export function ChatScreen({ route, navigation }: Props) {
   const { data: listing } = useListing(thread?.thread.listingId);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__boxdropLastChatRouteParams = route.params ?? null;
+    }
+  }, [route.params]);
+
+  useEffect(() => {
     if (listingTitle) {
       navigation.setOptions({ title: listingTitle });
     }
   }, [listingTitle, navigation]);
+
+  if (!threadId) {
+    return (
+      <View testID="chat-screen" style={styles.centered}>
+        <Text testID="chat-error-text" style={styles.errorText}>
+          Missing chat thread id
+        </Text>
+      </View>
+    );
+  }
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
@@ -69,19 +86,28 @@ export function ChatScreen({ route, navigation }: Props) {
         : colors.primary;
 
       return (
-        <View style={[styles.offerCard, isOwn ? styles.ownOffer : styles.otherOffer]}>
+        <View
+          testID={`offer-card-${item.offer.id}`}
+          style={[styles.offerCard, isOwn ? styles.ownOffer : styles.otherOffer]}
+        >
           <Text style={styles.offerLabel}>
             {isOwn ? 'You offered' : 'Offer received'}
           </Text>
-          <Text style={styles.offerAmount}>${item.offer.amount.toFixed(2)}</Text>
+          <Text testID={`offer-amount-${item.offer.id}`} style={styles.offerAmount}>
+            ${item.offer.amount.toFixed(2)}
+          </Text>
           <View style={[styles.offerStatusBadge, { backgroundColor: statusColor + '20' }]}>
-            <Text style={[styles.offerStatusText, { color: statusColor }]}>
+            <Text
+              testID={`offer-status-${item.offer.id}`}
+              style={[styles.offerStatusText, { color: statusColor }]}
+            >
               {item.offer.status}
             </Text>
           </View>
           {canAct && (
             <View style={styles.offerActions}>
               <TouchableOpacity
+                testID={`offer-accept-${item.offer.id}`}
                 style={styles.acceptBtn}
                 onPress={() => accept(item.offer!.id, {
                   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['threads'] }),
@@ -90,6 +116,7 @@ export function ChatScreen({ route, navigation }: Props) {
                 <Text style={styles.acceptBtnText}>Accept</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID={`offer-reject-${item.offer.id}`}
                 style={styles.rejectBtn}
                 onPress={() => reject(item.offer!.id, {
                   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['threads'] }),
@@ -98,6 +125,7 @@ export function ChatScreen({ route, navigation }: Props) {
                 <Text style={styles.rejectBtnText}>Reject</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID={`offer-counter-${item.offer.id}`}
                 style={styles.counterBtn}
                 onPress={() => setCounteringOfferId(item.offer!.id)}
               >
@@ -162,7 +190,7 @@ export function ChatScreen({ route, navigation }: Props) {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <View testID="chat-screen" style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -170,8 +198,8 @@ export function ChatScreen({ route, navigation }: Props) {
 
   if (isError) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>
+      <View testID="chat-screen" style={styles.centered}>
+        <Text testID="chat-error-text" style={styles.errorText}>
           {(error as Error)?.message ?? 'Failed to load messages'}
         </Text>
       </View>
@@ -182,11 +210,12 @@ export function ChatScreen({ route, navigation }: Props) {
 
   return (
     <KeyboardAvoidingView
+      testID="chat-screen"
       style={[styles.container, Platform.OS === 'web' && styles.containerWeb]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <View style={styles.chatCard}>
+      <View testID="chat-screen" style={styles.chatCard}>
         {listing && (
           <View style={styles.listingHeader}>
             {listing.images?.[0] && (
@@ -222,6 +251,7 @@ export function ChatScreen({ route, navigation }: Props) {
 
         <View style={styles.inputContainer}>
           <TextInput
+            testID="chat-message-input"
             style={styles.textInput}
             value={text}
             onChangeText={setText}

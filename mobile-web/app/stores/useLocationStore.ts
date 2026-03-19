@@ -2,6 +2,15 @@ import { create } from 'zustand';
 import * as Location from 'expo-location';
 
 const isWeb = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+const isTestEnv =
+  typeof process !== 'undefined' &&
+  (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined);
+
+function debugLog(...args: unknown[]) {
+  if (!isTestEnv) {
+    console.log(...args);
+  }
+}
 
 async function fetchLocationFromDevice(): Promise<{ latitude: number; longitude: number } | null> {
   if (isWeb) return null;
@@ -16,25 +25,25 @@ async function fetchLocationFromDevice(): Promise<{ latitude: number; longitude:
       longitude: position.coords.longitude,
     };
   } catch (e) {
-    console.log('[Location] Device geolocation error:', e);
+    debugLog('[Location] Device geolocation error:', e);
     return null;
   }
 }
 
 async function fetchLocationFromBrowser(): Promise<{ latitude: number; longitude: number } | null> {
-  console.log('[Location] Checking browser geolocation, isWeb:', isWeb, 'has geolocation:', !!navigator.geolocation);
+  debugLog('[Location] Checking browser geolocation, isWeb:', isWeb, 'has geolocation:', !!navigator.geolocation);
   if (!isWeb || !navigator.geolocation) return null;
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log('[Location] Browser geolocation success:', position.coords.latitude, position.coords.longitude);
+        debugLog('[Location] Browser geolocation success:', position.coords.latitude, position.coords.longitude);
         resolve({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         });
       },
       (err) => {
-        console.log('[Location] Browser geolocation error:', err.message);
+        debugLog('[Location] Browser geolocation error:', err.message);
         resolve(null);
       },
       { timeout: 5000, maximumAge: 300000 }
@@ -43,7 +52,7 @@ async function fetchLocationFromBrowser(): Promise<{ latitude: number; longitude
 }
 
 async function fetchLocationFromIP(): Promise<{ latitude: number; longitude: number } | null> {
-  console.log('[Location] Fetching IP geolocation...');
+  debugLog('[Location] Fetching IP geolocation...');
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
@@ -51,7 +60,7 @@ async function fetchLocationFromIP(): Promise<{ latitude: number; longitude: num
     clearTimeout(timeout);
     if (!res.ok) return null;
     const data = await res.json();
-    console.log('[Location] IP geolocation response:', data);
+    debugLog('[Location] IP geolocation response:', data);
     const latitude = typeof data.latitude === 'number' ? data.latitude : Number.parseFloat(data.latitude);
     const longitude = typeof data.longitude === 'number' ? data.longitude : Number.parseFloat(data.longitude);
     if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
@@ -59,7 +68,7 @@ async function fetchLocationFromIP(): Promise<{ latitude: number; longitude: num
     }
     return null;
   } catch (e) {
-    console.log('[Location] IP geolocation error:', e);
+    debugLog('[Location] IP geolocation error:', e);
     return null;
   }
 }
@@ -80,36 +89,36 @@ export const useLocationStore = create<LocationState>((set, get) => ({
   isLoading: false,
 
   requestLocation: async () => {
-    console.log('[Location] requestLocation called');
+    debugLog('[Location] requestLocation called');
     const state = get();
     if (state.isLoading || (state.latitude != null && state.longitude != null)) {
-      console.log('[Location] Skipping - isLoading:', state.isLoading, 'has location:', state.latitude != null);
+      debugLog('[Location] Skipping - isLoading:', state.isLoading, 'has location:', state.latitude != null);
       return;
     }
     set({ isLoading: true, errorMsg: null });
 
     const deviceLocation = await fetchLocationFromDevice();
     if (deviceLocation) {
-      console.log('[Location] Using device location');
+      debugLog('[Location] Using device location');
       set({ ...deviceLocation, isLoading: false });
       return;
     }
 
     const browserLocation = await fetchLocationFromBrowser();
     if (browserLocation) {
-      console.log('[Location] Using browser location');
+      debugLog('[Location] Using browser location');
       set({ ...browserLocation, isLoading: false });
       return;
     }
 
     const ipLocation = await fetchLocationFromIP();
     if (ipLocation) {
-      console.log('[Location] Using IP location');
+      debugLog('[Location] Using IP location');
       set({ ...ipLocation, isLoading: false });
       return;
     }
 
-    console.log('[Location] No location available');
+    debugLog('[Location] No location available');
     set({ errorMsg: 'Location unavailable', isLoading: false });
   },
 
@@ -118,13 +127,9 @@ export const useLocationStore = create<LocationState>((set, get) => ({
   },
 }));
 
-const isTestEnv =
-  typeof process !== 'undefined' &&
-  (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined);
-
 // Eagerly request location on module load
 if (typeof window !== 'undefined' && !isTestEnv) {
-  console.log('[Location] Module loaded, requesting location...');
+  debugLog('[Location] Module loaded, requesting location...');
   useLocationStore.getState().requestLocation();
 }
 

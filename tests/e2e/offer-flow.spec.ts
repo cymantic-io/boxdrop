@@ -3,12 +3,14 @@ import {
   uniqueEmail,
   registerUser,
   authenticateInBrowser,
+  openChatThreadInBrowser,
   createSaleViaApi,
   activateSaleViaApi,
   createListingViaApi,
   createOfferViaApi,
   getTransactionsViaApi,
   getThreadViaApi,
+  waitForOfferInThreadViaApi,
 } from './helpers';
 
 test.describe('Offer: Buyer offers, Seller accepts', () => {
@@ -52,6 +54,9 @@ test.describe('Offer: Buyer offers, Seller accepts', () => {
   test('buyer makes offer, seller accepts in chat, transaction is created', async ({ browser }) => {
     // --- Buyer: create offer via API ---
     const offerResult = await createOfferViaApi(buyerTokens, listing.id, 30);
+    const threadId = offerResult.thread.id;
+    const offerId = offerResult.offer.id;
+    await waitForOfferInThreadViaApi(buyerTokens, threadId, 30);
 
     // --- Buyer: verify offer appears in chat ---
     const buyerContext = await browser.newContext({
@@ -61,10 +66,7 @@ test.describe('Offer: Buyer offers, Seller accepts', () => {
     const buyerPage = await buyerContext.newPage();
     await authenticateInBrowser(buyerPage, buyerTokens);
     await expect(buyerPage.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
-
-    await buyerPage.getByText('Messages').first().click();
-    await expect(buyerPage.getByText(/Offer Test Widget/).first()).toBeVisible({ timeout: 10000 });
-    await buyerPage.getByText(/Offer Test Widget/).first().click();
+    await openChatThreadInBrowser(buyerPage, threadId, listing.title);
 
     // Verify the offer card shows in chat
     await expect(buyerPage.getByText('$30.00')).toBeVisible({ timeout: 10000 });
@@ -81,10 +83,7 @@ test.describe('Offer: Buyer offers, Seller accepts', () => {
     const sellerPage = await sellerContext.newPage();
     await authenticateInBrowser(sellerPage, sellerTokens);
     await expect(sellerPage.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
-
-    await sellerPage.getByText('Messages').first().click();
-    await expect(sellerPage.getByText(/Offer Test Widget/).first()).toBeVisible({ timeout: 10000 });
-    await sellerPage.getByText(/Offer Test Widget/).first().click();
+    await openChatThreadInBrowser(sellerPage, threadId, listing.title);
 
     // Should see the offer card with Accept button
     await expect(sellerPage.getByText('$30.00')).toBeVisible({ timeout: 10000 });
@@ -146,6 +145,8 @@ test.describe('Offer: Seller counteroffers, Buyer accepts', () => {
     // --- Buyer: create offer via API ---
     const offerResult = await createOfferViaApi(buyerTokens, listing.id, 40);
     const threadId = offerResult.thread.id;
+    const initialOfferId = offerResult.offer.id;
+    await waitForOfferInThreadViaApi(buyerTokens, threadId, 40);
 
     // --- Seller: open chat and counter the offer ---
     const sellerContext = await browser.newContext({
@@ -155,10 +156,7 @@ test.describe('Offer: Seller counteroffers, Buyer accepts', () => {
     const sellerPage = await sellerContext.newPage();
     await authenticateInBrowser(sellerPage, sellerTokens);
     await expect(sellerPage.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
-
-    await sellerPage.getByText('Messages').first().click();
-    await expect(sellerPage.getByText(/Counter Test Gadget/).first()).toBeVisible({ timeout: 10000 });
-    await sellerPage.getByText(/Counter Test Gadget/).first().click();
+    await openChatThreadInBrowser(sellerPage, threadId, listing.title);
 
     // See the pending offer
     await expect(sellerPage.getByText('$40.00')).toBeVisible({ timeout: 10000 });
@@ -189,10 +187,7 @@ test.describe('Offer: Seller counteroffers, Buyer accepts', () => {
     const buyerPage = await buyerContext.newPage();
     await authenticateInBrowser(buyerPage, buyerTokens);
     await expect(buyerPage.locator('[data-testid="home-screen"]')).toBeVisible({ timeout: 15000 });
-
-    await buyerPage.getByText('Messages').first().click();
-    await expect(buyerPage.getByText(/Counter Test Gadget/).first()).toBeVisible({ timeout: 10000 });
-    await buyerPage.getByText(/Counter Test Gadget/).first().click();
+    await openChatThreadInBrowser(buyerPage, threadId, listing.title);
 
     // See the counter offer at $60
     await expect(buyerPage.getByText('$60.00')).toBeVisible({ timeout: 10000 });

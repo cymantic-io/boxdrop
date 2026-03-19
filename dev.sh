@@ -24,6 +24,97 @@ print_warning() {
     echo -e "${YELLOW}Warning: $1${NC}"
 }
 
+get_node20_path() {
+    local nvm_root="$HOME/.nvm/versions/node"
+
+    if [ ! -d "$nvm_root" ]; then
+        echo "$PATH"
+        return
+    fi
+
+    local latest_node20_bin
+    latest_node20_bin=$(find "$nvm_root" -maxdepth 3 -type f -path "*/v20.*/bin/node" 2>/dev/null | sort -V | tail -n 1 | xargs -I {} dirname "{}")
+
+    if [ -n "$latest_node20_bin" ] && [ -x "$latest_node20_bin/node" ]; then
+        echo "$latest_node20_bin:$PATH"
+        return
+    fi
+
+    echo "$PATH"
+}
+
+require_node20() {
+    local node20_path
+    node20_path="$(get_node20_path)"
+    local node_bin="${node20_path%%:*}/node"
+
+    if [ ! -x "$node_bin" ]; then
+        print_error "Node 20 is required for Expo tooling but was not found under ~/.nvm/versions/node."
+        print_error "Install it with: nvm install 20"
+        exit 1
+    fi
+
+    local node_version
+    node_version="$("$node_bin" -v 2>/dev/null || true)"
+    if [[ ! "$node_version" =~ ^v20\. ]]; then
+        print_error "Node 20 is required for Expo tooling. Found: ${node_version:-unknown}"
+        print_error "Activate it with: nvm use 20"
+        exit 1
+    fi
+}
+
+is_backend_running() {
+    lsof -iTCP:8080 -sTCP:LISTEN &>/dev/null
+}
+
+wait_for_backend() {
+    local timeout_seconds="${1:-60}"
+    local elapsed=0
+
+    while [ "$elapsed" -lt "$timeout_seconds" ]; do
+        if is_backend_running; then
+            return 0
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    return 1
+}
+
+ensure_backend_running() {
+    if is_backend_running; then
+        print_header "Backend already running on port 8080"
+        BACKEND_PID=""
+        return 0
+    fi
+
+    print_warning "Backend not running on port 8080, starting it..."
+    local backend_log="${TMPDIR:-/tmp}/boxdrop-backend-e2e.log"
+    cd backend
+    ./gradlew run >"$backend_log" 2>&1 &
+    BACKEND_PID=$!
+    cd ..
+
+    print_header "Backend start requested with PID: $BACKEND_PID"
+    print_header "Waiting for backend on http://127.0.0.1:8080 ..."
+
+    if wait_for_backend 90; then
+        print_header "Backend is ready"
+        return 0
+    fi
+
+    print_error "Backend did not become ready within 90 seconds."
+    print_error "Start it manually with: cd backend && ./gradlew run"
+    print_error "Startup log: $backend_log"
+
+    if [ -n "$BACKEND_PID" ]; then
+        kill "$BACKEND_PID" 2>/dev/null || true
+    fi
+
+    return 1
+}
+
 # Helper functions
 backend_build() {
     print_header "Building Backend"
@@ -77,43 +168,49 @@ backend_stop() {
 
 mobile_install() {
     print_header "Installing Mobile Dependencies"
+    require_node20
     cd mobile-web
-    npm install
+    PATH="$(get_node20_path)" npm install
     cd ..
 }
 
 mobile_start() {
     print_header "Starting Expo Dev Server"
+    require_node20
     cd mobile-web
-    npm start
+    PATH="$(get_node20_path)" npm start
     cd ..
 }
 
 mobile_android() {
     print_header "Running on Android Emulator"
+    require_node20
     cd mobile-web
-    npm run android
+    PATH="$(get_node20_path)" npm run android
     cd ..
 }
 
 mobile_ios() {
     print_header "Running on iOS Simulator"
+    require_node20
     cd mobile-web
-    npm run ios
+    PATH="$(get_node20_path)" npm run ios
     cd ..
 }
 
 mobile_web() {
     print_header "Running on Web (Browser)"
+    require_node20
     cd mobile-web
-    npm run web
+    PATH="$(get_node20_path)" npm run web
     cd ..
 }
 
 mobile_test() {
     print_header "Running Mobile Tests"
+    require_node20
     cd mobile-web
-    npm test
+    PATH="$(get_node20_path)" npm test
     cd ..
 }
 
@@ -152,20 +249,7 @@ mobile_stop() {
 
 e2e_test() {
     print_header "Running E2E Tests"
-
-    # Check if backend is running on port 8080
-    if ! lsof -i ":8080" &>/dev/null; then
-        print_warning "Backend not running on port 8080, starting it..."
-        cd backend
-        ./gradlew run &
-        BACKEND_PID=$!
-        print_header "Backend started with PID: $BACKEND_PID"
-        sleep 15  # Wait for backend to start
-        cd ..
-    else
-        print_header "Backend already running on port 8080"
-        BACKEND_PID=""
-    fi
+    ensure_backend_running || exit 1
 
     # Run E2E tests (Playwright will manage frontend startup via webServer config)
     cd tests/e2e
@@ -190,20 +274,7 @@ e2e_test() {
 
 load_test() {
     print_header "Running Load Tests"
-
-    # Check if backend is running
-    if ! lsof -i ":8080" &>/dev/null; then
-        print_warning "Backend not running on port 8080, starting it..."
-        cd backend
-        ./gradlew run &
-        BACKEND_PID=$!
-        print_header "Backend started with PID: $BACKEND_PID"
-        sleep 15  # Wait for backend to start
-        cd ..
-    else
-        print_header "Backend already running on port 8080"
-        BACKEND_PID=""
-    fi
+    ensure_backend_running || exit 1
 
     # Check if k6 is available
     if ! command -v k6 &> /dev/null; then

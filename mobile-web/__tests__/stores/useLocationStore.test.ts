@@ -20,6 +20,13 @@ describe('useLocationStore', () => {
     mockGetCurrentPosition.mockReset();
     mockFetch.mockReset();
     (global as typeof globalThis).fetch = mockFetch;
+    if (!(global as typeof globalThis & { navigator?: Navigator }).navigator) {
+      Object.defineProperty(global, 'navigator', {
+        value: {},
+        configurable: true,
+        writable: true,
+      });
+    }
     Object.defineProperty(global.navigator, 'geolocation', {
       value: { getCurrentPosition: (...args: unknown[]) => mockGetCurrentPosition(...args) },
       configurable: true,
@@ -52,8 +59,10 @@ describe('useLocationStore', () => {
   });
 
   it('requestLocation sets error when all methods fail', async () => {
-    mockGetCurrentPosition.mockImplementation((_success: unknown, error: (err: { message: string }) => void) => {
-      error({ message: 'User denied Geolocation' });
+    mockRequestPermissions.mockResolvedValue({ status: 'denied' });
+    Object.defineProperty(global.navigator, 'geolocation', {
+      value: undefined,
+      configurable: true,
     });
     mockFetch.mockRejectedValueOnce(new Error('network'));
 

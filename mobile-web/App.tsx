@@ -13,6 +13,19 @@ export const navigationRef = createNavigationContainerRef();
 
 if (typeof window !== 'undefined') {
   const originalWarn = console.warn;
+  (window as any).__boxdropLastError = null;
+
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('error', (event) => {
+      (window as any).__boxdropLastError = event.error?.message ?? event.message ?? 'Unknown window error';
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = (event as PromiseRejectionEvent).reason;
+      (window as any).__boxdropLastError = reason?.message ?? String(reason);
+    });
+  }
+
   console.warn = (...args: any[]) => {
     const message = args[0]?.toString() ?? '';
     if (message.includes('shadow') || message.includes('pointerEvents') || message.includes('useNativeDriver')) {
@@ -20,6 +33,52 @@ if (typeof window !== 'undefined') {
     }
     originalWarn.apply(console, args);
   };
+
+  (window as any).__boxdropNavigate = (tabName: string, options?: unknown) => {
+    if (!navigationRef.isReady()) {
+      return;
+    }
+    navigationRef.navigate(tabName as never, options as never);
+  };
+
+  (window as any).__boxdropOpenChat = async (threadId: string, listingTitle?: string) => {
+    if (!navigationRef.isReady()) {
+      return false;
+    }
+
+    navigationRef.navigate('MessagesTab' as never, {
+      screen: 'Inbox',
+    } as never);
+
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const state = navigationRef.getRootState();
+      const activeRoute = state?.routes?.[state.index ?? 0];
+      if (activeRoute?.name === 'MessagesTab') {
+        navigationRef.navigate('MessagesTab' as never, {
+          screen: 'Chat',
+          params: {
+            threadId,
+            listingTitle,
+          },
+        } as never);
+        return true;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    return false;
+  };
+
+  (window as any).__boxdropGetNavState = () => {
+    if (!navigationRef.isReady()) {
+      return null;
+    }
+    return navigationRef.getRootState();
+  };
+
+  (window as any).__boxdropGetLastError = () => (window as any).__boxdropLastError;
 }
 
 const linking: any = {

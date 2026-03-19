@@ -14,7 +14,11 @@ import { useLocationStore } from '../../stores/useLocationStore';
 import { colors } from '../../theme';
 import type { HomeStackParamList, Sale } from '../../types';
 
-if (typeof window !== 'undefined') {
+const isTestEnv =
+  typeof process !== 'undefined' &&
+  (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined);
+
+if (typeof window !== 'undefined' && !isTestEnv) {
   // eslint-disable-next-line no-console
   console.log('[Map] HomeScreen.native loaded on web');
 }

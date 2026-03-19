@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { execSync } from 'child_process';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = process.env.BOXDROP_API_BASE ?? 'http://127.0.0.1:8080/api';
 
 interface AuthTokens {
   accessToken: string;
@@ -122,6 +122,34 @@ export async function authenticateInBrowser(page: Page, tokens: AuthTokens): Pro
   // Navigate to home instead of reload to avoid connection issues
   await page.goto('/');
   await page.waitForTimeout(1000);
+}
+
+export async function openChatThreadInBrowser(page: Page, threadId: string, listingTitle?: string): Promise<void> {
+  if (!listingTitle) {
+    throw new Error('Listing title is required to open chat thread in browser');
+  }
+
+  await page.locator('[data-testid="nav-MessagesTab"]').click();
+  await expect(page.getByText('All buyer and seller conversations.')).toBeVisible({ timeout: 10000 });
+
+  const threadListing = page.getByText(`Re: ${listingTitle}`, { exact: true }).first();
+  await expect(threadListing).toBeVisible({ timeout: 10000 });
+  await threadListing.click();
+
+  try {
+    await expect(page.getByRole('textbox', { name: 'Type a message...' })).toBeVisible({ timeout: 10000 });
+  } catch {
+    const diagnostics = await page.evaluate(() => {
+      const getNavState = (window as any).__boxdropGetNavState;
+      const getLastError = (window as any).__boxdropGetLastError;
+      return {
+        navState: typeof getNavState === 'function' ? getNavState() : null,
+        lastError: typeof getLastError === 'function' ? getLastError() : null,
+        lastChatRouteParams: (window as any).__boxdropLastChatRouteParams ?? null,
+      };
+    });
+    throw new Error(`Chat screen did not render after clicking inbox thread for listing "${listingTitle}". Diagnostics: ${JSON.stringify(diagnostics)}`);
+  }
 }
 
 export async function createSaleViaApi(tokens: AuthTokens, sale: {
@@ -255,4 +283,28 @@ export async function getThreadViaApi(tokens: AuthTokens, threadId: string): Pro
   if (!res.ok) throw new Error(`Get thread failed: ${res.status}`);
   const { data } = await res.json();
   return data;
+}
+
+export async function waitForOfferInThreadViaApi(
+  tokens: AuthTokens,
+  threadId: string,
+  amount: number,
+  timeoutMs = 10000
+): Promise<any> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const thread = await getThreadViaApi(tokens, threadId);
+    const matchingOffer = thread.messages?.find(
+      (message: any) => message.offer && Number(message.offer.amount) === amount
+    );
+
+    if (matchingOffer) {
+      return thread;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Offer ${amount} not found in thread ${threadId} within ${timeoutMs}ms`);
 }

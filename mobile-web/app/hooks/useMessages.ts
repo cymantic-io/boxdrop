@@ -23,6 +23,7 @@ export function useThread(threadId: string | undefined) {
     queryFn: () => getThread(threadId!),
     enabled: !!threadId,
     staleTime: 30 * 1000,
+    refetchOnMount: 'always',
   });
 }
 

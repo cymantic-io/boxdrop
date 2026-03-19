@@ -48,6 +48,7 @@ export function InboxScreen({ navigation }: Props) {
 
   const renderItem = ({ item }: { item: MessageThread }) => (
     <TouchableOpacity
+      testID={`thread-row-${item.id}`}
       style={styles.threadRow}
       onPress={() =>
         navigation.navigate('Chat', {
@@ -72,7 +73,7 @@ export function InboxScreen({ navigation }: Props) {
         </View>
 
         {item.listingTitle && (
-          <Text style={styles.listingTitle} numberOfLines={1}>
+          <Text testID={`thread-listing-${item.id}`} style={styles.listingTitle} numberOfLines={1}>
             Re: {item.listingTitle}
           </Text>
         )}

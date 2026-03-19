@@ -151,10 +151,8 @@ test.describe('OTP Login Flow', () => {
     await page.locator('[data-testid="login-submit"]').click();
     await page.waitForTimeout(1000);
 
-    // The login button should show an error since we can't complete the OTP flow via UI
-    // This test validates that the login form works up to OTP submission
-    const loginVisible = await page.locator('[data-testid="login-email"]').isVisible();
-    expect(loginVisible).toBe(true);
+    // The flow should advance to the verification screen after requesting an OTP.
+    await expect(page.locator('[data-testid="verify-code"]')).toBeVisible({ timeout: 10000 });
   });
 
   test('login with valid OTP authenticates user', async ({ page }) => {
