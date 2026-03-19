@@ -1,4 +1,3 @@
-import 'leaflet/dist/leaflet.css';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import type { LeafletEventHandlerFnMap } from 'leaflet';
@@ -9,6 +8,7 @@ import { useNearbySales } from '../../hooks';
 import { useLocationStore } from '../../stores/useLocationStore';
 import { colors } from '../../theme';
 import type { HomeStackParamList, Sale } from '../../types';
+import { ensureLeafletWebStyles } from '../../utils/leafletWeb';
 
 const FALLBACK_CENTER: [number, number] = [39.8283, -98.5795];
 const FALLBACK_ZOOM = 4;
@@ -119,6 +119,10 @@ export function HomeScreen({ navigation }: Props) {
   const { latitude, longitude, requestLocation } = useLocationStore();
   const flatListRef = useRef<FlatList<Sale>>(null);
   const [savedView, setSavedView] = useState<StoredMapView | null>(null);
+
+  useEffect(() => {
+    ensureLeafletWebStyles();
+  }, []);
 
   useEffect(() => {
     requestLocation();

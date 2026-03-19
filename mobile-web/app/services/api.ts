@@ -1,4 +1,5 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios/dist/esm/axios.js';
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import {
   ApiResponse,
   PaginatedResponse,

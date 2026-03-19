@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useNavigationStore } from '../stores/useNavigationStore';
 import { colors } from '../theme';
@@ -64,16 +64,14 @@ const AuthStackNav = createNativeStackNavigator<AuthStackParamList>();
 
 function AuthStackOverlay() {
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer independent style={{ flex: 1 }}>
-        <AuthStackNav.Navigator screenOptions={{ headerShown: false }}>
-          <AuthStackNav.Screen name="Login" component={LoginScreen} />
-          <AuthStackNav.Screen name="Register" component={RegisterScreen} />
-          <AuthStackNav.Screen name="VerifyCode" component={VerifyCodeScreen} />
-          <AuthStackNav.Screen name="MethodPicker" component={MethodPickerScreen} />
-        </AuthStackNav.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
+    <NavigationContainer independent>
+      <AuthStackNav.Navigator screenOptions={{ headerShown: false }}>
+        <AuthStackNav.Screen name="Login" component={LoginScreen} />
+        <AuthStackNav.Screen name="Register" component={RegisterScreen} />
+        <AuthStackNav.Screen name="VerifyCode" component={VerifyCodeScreen} />
+        <AuthStackNav.Screen name="MethodPicker" component={MethodPickerScreen} />
+      </AuthStackNav.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -191,12 +189,6 @@ function MainTabs() {
           handleStateChange(e.state);
         },
       })}
-      layout={isWeb ? ({ children, state, navigation, descriptors }: any) => (
-        <View style={{ flex: 1 }}>
-          <TopNavBar state={state} navigation={navigation} descriptors={descriptors} />
-          {children}
-        </View>
-      ) : undefined}
       screenOptions={{
         headerShown: false,
         tabBarStyle: isWeb
@@ -217,6 +209,14 @@ function MainTabs() {
       <Tab.Screen
         name="HomeTab"
         component={HomeStack}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('HomeTab', {
+              screen: 'Home',
+            });
+          },
+        })}
         options={{
           tabBarLabel: 'Explore',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="map-search" size={size} color={color} />,
@@ -225,6 +225,14 @@ function MainTabs() {
       <Tab.Screen
         name="MySalesTab"
         component={MySalesStack}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('MySalesTab', {
+              screen: 'MySalesList',
+            });
+          },
+        })}
         options={{
           tabBarLabel: 'My Sales',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="tag-multiple" size={size} color={color} />,
@@ -233,6 +241,14 @@ function MainTabs() {
       <Tab.Screen
         name="MessagesTab"
         component={MessagesStack}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('MessagesTab', {
+              screen: 'Inbox',
+            });
+          },
+        })}
         options={{
           tabBarLabel: 'Messages',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="message-text" size={size} color={color} />,
@@ -241,6 +257,14 @@ function MainTabs() {
       <Tab.Screen
         name="ProfileTab"
         component={ProfileStack}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('ProfileTab', {
+              screen: 'Profile',
+            });
+          },
+        })}
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => <MaterialCommunityIcons name="account" size={size} color={color} />,
@@ -288,7 +312,10 @@ export function AppNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
-      <MainTabs />
+      {isWeb && <TopNavBar />}
+      <View style={{ flex: 1 }}>
+        <MainTabs />
+      </View>
       {showAuthPrompt && <AuthOverlay />}
     </View>
   );

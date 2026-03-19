@@ -42,13 +42,14 @@ interface AuthState {
   isLoading: boolean;
   showAuthPrompt: boolean;
   authRedirectRoute: string | null;
+  pendingAuthAction: (() => void) | null;
   isLoggingOut: boolean;
   login: (challengeId: string, method: string, code: string) => Promise<void>;
   register: (challengeId: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   setTokens: (accessToken: string, refreshToken: string, userId: string) => void;
   loadStoredTokens: () => Promise<void>;
-  setShowAuthPrompt: (show: boolean, redirectRoute?: string) => void;
+  setShowAuthPrompt: (show: boolean, redirectRoute?: string, pendingAuthAction?: (() => void) | null) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -60,11 +61,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   showAuthPrompt: false,
   authRedirectRoute: null,
+  pendingAuthAction: null,
   isLoggingOut: false,
 
-  setShowAuthPrompt: (show, redirectRoute) => {
+  setShowAuthPrompt: (show, redirectRoute, pendingAuthAction) => {
     if (get().isLoggingOut) return;
-    set({ showAuthPrompt: show, authRedirectRoute: show ? redirectRoute ?? null : null });
+    set({
+      showAuthPrompt: show,
+      authRedirectRoute: show ? redirectRoute ?? null : null,
+      pendingAuthAction: show ? pendingAuthAction ?? null : null,
+    });
     if (!show) {
       try {
         const { navigationRef } = require('../../App');
@@ -88,7 +94,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     storage.setItem(REFRESH_KEY, refreshToken);
     storage.setItem(USER_ID_KEY, userId);
     const redirectRoute = get().authRedirectRoute;
-    set({ accessToken, refreshToken, userId, isAuthenticated: true, showAuthPrompt: false, authRedirectRoute: null });
+    const pendingAuthAction = get().pendingAuthAction;
+    set({
+      accessToken,
+      refreshToken,
+      userId,
+      isAuthenticated: true,
+      showAuthPrompt: false,
+      authRedirectRoute: null,
+      pendingAuthAction: null,
+    });
+
+    if (pendingAuthAction) {
+      setTimeout(() => {
+        try {
+          pendingAuthAction();
+        } catch (e) {
+          console.warn('Failed to replay pending auth action', e);
+        }
+      }, 0);
+    }
     
     // Navigate to redirect route if set
     if (redirectRoute) {
@@ -131,6 +156,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoading: false,
       showAuthPrompt: false,
       authRedirectRoute: null,
+      pendingAuthAction: null,
     });
     
     // Navigate to HomeTab after logout

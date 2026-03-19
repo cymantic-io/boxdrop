@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { CommonActions } from '@react-navigation/native';
 import { colors } from '../theme';
 import BoxdropIcon from '../../assets/boxdrop-icon.svg';
 
@@ -19,30 +18,46 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'ProfileTab', label: 'Profile', icon: 'account' },
 ];
 
-interface TopNavBarProps {
-  state: any;
-  navigation: any;
-  descriptors: any;
-}
+const ROOT_ROUTES: Record<string, string> = {
+  HomeTab: 'Home',
+  MySalesTab: 'MySalesList',
+  MessagesTab: 'Inbox',
+  ProfileTab: 'Profile',
+};
 
-export function TopNavBar({ state, navigation }: TopNavBarProps) {
-  const activeRoute = state?.routes?.[state.index]?.name;
+export function TopNavBar() {
+  const activeTab = useSyncExternalStore(
+    (onStoreChange) => {
+      const { navigationRef } = require('../../App');
+      if (!navigationRef?.addListener) {
+        return () => {};
+      }
+
+      return navigationRef.addListener('state', onStoreChange);
+    },
+    () => {
+      const { navigationRef } = require('../../App');
+      return getActiveTabName(navigationRef?.getRootState?.());
+    },
+    () => 'HomeTab'
+  );
 
   const handleNavPress = (key: string) => {
-    if (activeRoute === key) {
-      const tabRoute = state.routes.find((r: any) => r.name === key);
-      if (tabRoute?.state && tabRoute.state.index > 0) {
-        navigation.dispatch({
-          ...CommonActions.reset({
-            index: 0,
-            routes: [{ name: tabRoute.state.routes[0].name }],
-          }),
-          target: tabRoute.state.key,
-        });
-        return;
-      }
+    const { navigationRef } = require('../../App');
+    const rootRoute = ROOT_ROUTES[key];
+
+    if (!navigationRef?.current?.navigate) {
+      return;
     }
-    navigation.navigate(key);
+
+    const currentRoute = getActiveLeafRouteName(navigationRef.current?.getRootState?.());
+
+    if (activeTab === key && currentRoute && currentRoute !== rootRoute) {
+      navigationRef.current.navigate(key, { screen: rootRoute });
+      return;
+    }
+
+    navigationRef.current.navigate(key);
   };
 
   return (
@@ -60,7 +75,7 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
 
         <View style={styles.navLinks}>
           {NAV_ITEMS.map((item) => {
-            const isActive = activeRoute === item.key;
+            const isActive = activeTab === item.key;
             return (
               <Pressable
                 key={item.key}
@@ -88,6 +103,40 @@ export function TopNavBar({ state, navigation }: TopNavBarProps) {
       </View>
     </View>
   );
+}
+
+function getActiveTabName(state: any): string {
+  let currentState = state;
+  let activeTab = 'HomeTab';
+
+  while (currentState?.routes?.length) {
+    const route = currentState.routes[currentState.index ?? 0];
+    if (!route) {
+      break;
+    }
+    if (route.name in ROOT_ROUTES) {
+      activeTab = route.name;
+    }
+    currentState = route.state;
+  }
+
+  return activeTab;
+}
+
+function getActiveLeafRouteName(state: any): string | null {
+  let currentState = state;
+  let routeName: string | null = null;
+
+  while (currentState?.routes?.length) {
+    const route = currentState.routes[currentState.index ?? 0];
+    if (!route) {
+      break;
+    }
+    routeName = route.name ?? null;
+    currentState = route.state;
+  }
+
+  return routeName;
 }
 
 const styles = StyleSheet.create({

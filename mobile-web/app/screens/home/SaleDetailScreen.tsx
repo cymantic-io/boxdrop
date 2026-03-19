@@ -29,6 +29,15 @@ export function SaleDetailScreen({ route, navigation }: Props) {
   const { mutate: save } = useSaveListing();
   const { mutate: unsave } = useUnsaveListing();
   const savedIds = new Set(savedListings?.map((item) => item.id));
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const requireAuth = (action: () => void) => {
+    if (!isAuthenticated) {
+      useAuthStore.getState().setShowAuthPrompt(true, undefined, action);
+      return;
+    }
+    action();
+  };
 
   if (saleLoading || listingsLoading) {
     return (
@@ -122,7 +131,7 @@ export function SaleDetailScreen({ route, navigation }: Props) {
                 <Button
                   mode={isSaved ? 'contained' : 'outlined'}
                   icon={isSaved ? 'heart' : 'heart-outline'}
-                  onPress={() => isSaved ? unsave(item.id) : save(item.id)}
+                  onPress={() => requireAuth(() => (isSaved ? unsave(item.id) : save(item.id)))}
                   style={isSaved ? styles.savedButton : styles.saveButton}
                   textColor={isSaved ? colors.white : colors.accent}
                   buttonColor={isSaved ? colors.accent : undefined}

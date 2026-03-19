@@ -6,6 +6,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/app/$1',
+    '\\.svg$': '<rootDir>/__mocks__/svgMock.js',
   },
   collectCoverageFrom: [
     'app/**/*.{ts,tsx}',

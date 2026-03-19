@@ -8,9 +8,15 @@ interface ListingCardProps {
   listing: Listing;
   onPress: () => void;
   rightAction?: React.ReactNode;
+  footerAction?: React.ReactNode;
 }
 
-export const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress, rightAction }) => {
+export const ListingCard: React.FC<ListingCardProps> = ({
+  listing,
+  onPress,
+  rightAction,
+  footerAction,
+}) => {
   const hasDiscount = listing.currentPrice < listing.startingPrice;
   const imageUrl = listing.images?.[0]?.imageUrl;
 
@@ -43,6 +49,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onPress, righ
           </View>
           {rightAction && <View style={styles.rightAction}>{rightAction}</View>}
         </View>
+        {footerAction ? <View style={styles.footerAction}>{footerAction}</View> : null}
       </Card.Content>
     </Card>
   );
@@ -87,6 +94,9 @@ const styles = StyleSheet.create({
   },
   rightAction: {
     marginLeft: 8,
+  },
+  footerAction: {
+    marginTop: 10,
   },
   title: {
     color: colors.textPrimary,

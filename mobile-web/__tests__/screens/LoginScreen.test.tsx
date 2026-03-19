@@ -11,10 +11,6 @@ jest.mock('../../app/services/api', () => ({
 
 import { LoginScreen } from '../../app/screens/auth/LoginScreen';
 
-afterEach(() => {
-  jest.useRealTimers();
-});
-
 function renderWithPaper(ui: React.ReactElement) {
   return render(<PaperProvider>{ui}</PaperProvider>);
 }
@@ -27,11 +23,17 @@ describe('LoginScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('renders email input', () => {
-    const { getAllByText } = renderWithPaper(<LoginScreen {...defaultProps} />);
-    expect(getAllByText('Email').length).toBeGreaterThan(0);
+    const { getByTestId } = renderWithPaper(<LoginScreen {...defaultProps} />);
+    expect(getByTestId('login-email')).toBeTruthy();
   });
 
   it('renders continue button', () => {
@@ -41,12 +43,12 @@ describe('LoginScreen', () => {
 
   it('renders register link', () => {
     const { getByText } = renderWithPaper(<LoginScreen {...defaultProps} />);
-    expect(getByText(/Don't have an account/)).toBeTruthy();
+    expect(getByText('Create an account')).toBeTruthy();
   });
 
   it('navigates to Register on link press', () => {
     const { getByText } = renderWithPaper(<LoginScreen {...defaultProps} />);
-    fireEvent.press(getByText(/Don't have an account/));
+    fireEvent.press(getByText('Create an account'));
     expect(mockNavigate).toHaveBeenCalledWith('Register');
   });
 });

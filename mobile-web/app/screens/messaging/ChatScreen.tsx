@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query/build/legacy/index.cjs';
 import { useThread, useSendMessage, useAcceptOffer, useRejectOffer, useCounterOffer, useListing } from '../../hooks';
 import { colors } from '../../theme';
 import { useAuthStore } from '../../stores/useAuthStore';

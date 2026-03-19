@@ -44,7 +44,7 @@ export function ListingDetailScreen({ route, navigation }: Props) {
 
   const requireAuth = (action: () => void) => {
     if (!isAuthenticated) {
-      useAuthStore.getState().setShowAuthPrompt(true);
+      useAuthStore.getState().setShowAuthPrompt(true, undefined, action);
       return;
     }
     action();
@@ -124,6 +124,17 @@ export function ListingDetailScreen({ route, navigation }: Props) {
             >
               {isSaved ? 'Saved' : 'Save'}
             </PaperButton>
+            {sale ? (
+              <PaperButton
+                mode="text"
+                icon="storefront-outline"
+                onPress={() => (navigation as any).navigate('SaleDetail', { saleId: sale.id })}
+                textColor={colors.primary}
+                contentStyle={styles.saleLinkContent}
+              >
+                View Sale
+              </PaperButton>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -259,9 +270,10 @@ const styles = StyleSheet.create({
   statusBadge: { backgroundColor: '#ECFDF3' },
   badgeText: { fontSize: 12, fontWeight: '600', color: '#1D2939' },
   description: { fontSize: 15, color: '#667085', lineHeight: 22, marginBottom: 16 },
-  actions: { flexDirection: 'row', gap: 12 },
+  actions: { flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap' },
   saveButton: { borderColor: colors.accent, borderRadius: 12 },
   savedButton: { borderRadius: 12 },
+  saleLinkContent: { minHeight: 40 },
   claimContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E4E7EC' },
   actionRow: { flexDirection: 'row', gap: 12 },
   actionFlex: { flex: 1 },

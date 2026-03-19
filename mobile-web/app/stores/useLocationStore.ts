@@ -118,8 +118,12 @@ export const useLocationStore = create<LocationState>((set, get) => ({
   },
 }));
 
+const isTestEnv =
+  typeof process !== 'undefined' &&
+  (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined);
+
 // Eagerly request location on module load
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !isTestEnv) {
   console.log('[Location] Module loaded, requesting location...');
   useLocationStore.getState().requestLocation();
 }

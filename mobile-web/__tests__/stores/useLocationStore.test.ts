@@ -2,6 +2,8 @@ import { useLocationStore } from '../../app/stores/useLocationStore';
 
 const mockRequestPermissions = jest.fn();
 const mockGetPosition = jest.fn();
+const mockGetCurrentPosition = jest.fn();
+const mockFetch = jest.fn();
 
 jest.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: (...args: unknown[]) => mockRequestPermissions(...args),
@@ -14,6 +16,13 @@ describe('useLocationStore', () => {
     mockRequestPermissions.mockResolvedValue({ status: 'granted' });
     mockGetPosition.mockResolvedValue({
       coords: { latitude: 40.7128, longitude: -74.006 },
+    });
+    mockGetCurrentPosition.mockReset();
+    mockFetch.mockReset();
+    (global as typeof globalThis).fetch = mockFetch;
+    Object.defineProperty(global.navigator, 'geolocation', {
+      value: { getCurrentPosition: (...args: unknown[]) => mockGetCurrentPosition(...args) },
+      configurable: true,
     });
     useLocationStore.setState({
       latitude: null,
@@ -29,7 +38,10 @@ describe('useLocationStore', () => {
     expect(state.longitude).toBeNull();
   });
 
-  it('requestLocation updates coordinates', async () => {
+  it('requestLocation updates coordinates from browser geolocation', async () => {
+    mockGetCurrentPosition.mockImplementation((success: (position: { coords: { latitude: number; longitude: number } }) => void) => {
+      success({ coords: { latitude: 40.7128, longitude: -74.006 } });
+    });
     const { requestLocation } = useLocationStore.getState();
     await requestLocation();
 
@@ -39,8 +51,11 @@ describe('useLocationStore', () => {
     expect(state.isLoading).toBe(false);
   });
 
-  it('requestLocation sets error when permission denied', async () => {
-    mockRequestPermissions.mockResolvedValueOnce({ status: 'denied' });
+  it('requestLocation sets error when all methods fail', async () => {
+    mockGetCurrentPosition.mockImplementation((_success: unknown, error: (err: { message: string }) => void) => {
+      error({ message: 'User denied Geolocation' });
+    });
+    mockFetch.mockRejectedValueOnce(new Error('network'));
 
     const { requestLocation } = useLocationStore.getState();
     await requestLocation();
@@ -48,17 +63,7 @@ describe('useLocationStore', () => {
     const state = useLocationStore.getState();
     expect(state.latitude).toBeNull();
     expect(state.longitude).toBeNull();
-    expect(state.errorMsg).toBe('Location permission denied');
-  });
-
-  it('requestLocation sets error on failure', async () => {
-    mockGetPosition.mockRejectedValueOnce(new Error('fail'));
-
-    const { requestLocation } = useLocationStore.getState();
-    await requestLocation();
-
-    const state = useLocationStore.getState();
-    expect(state.errorMsg).toBe('Failed to get location');
+    expect(state.errorMsg).toBe('Location unavailable');
     expect(state.isLoading).toBe(false);
   });
 

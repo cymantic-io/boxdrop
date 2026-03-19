@@ -7,6 +7,7 @@ import { SearchBar } from '../../components';
 import { useMapSales } from '../../hooks';
 import { useLocationStore } from '../../stores/useLocationStore';
 import type { MapStackParamList } from '../../types';
+import { ensureLeafletWebStyles } from '../../utils/leafletWeb';
 
 // Fix default marker icons for Leaflet (assets are not bundled by default)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -34,6 +35,10 @@ type Props = NativeStackScreenProps<MapStackParamList, 'Map'>;
 export function MapScreen({ navigation }: Props) {
   const [searchText, setSearchText] = useState('');
   const { latitude, longitude, requestLocation } = useLocationStore();
+
+  useEffect(() => {
+    ensureLeafletWebStyles();
+  }, []);
 
   useEffect(() => {
     requestLocation();

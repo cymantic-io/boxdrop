@@ -46,6 +46,13 @@ export function SavedScreen({ navigation }: Props) {
     [navigation],
   );
 
+  const handleSalePress = useCallback(
+    (saleId: string) => {
+      navigation.navigate('SaleDetail', { saleId });
+    },
+    [navigation],
+  );
+
   if (isLoading && !isRefetching) {
     return <LoadingScreen />;
   }
@@ -56,6 +63,8 @@ export function SavedScreen({ navigation }: Props) {
       <FlatList
         data={savedListings ?? []}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
         renderItem={({ item }) => (
           <ListingCard
             listing={item}
@@ -71,6 +80,19 @@ export function SavedScreen({ navigation }: Props) {
                 compact
               >
                 Unsave
+              </Button>
+            }
+            footerAction={
+              <Button
+                mode="text"
+                icon="storefront-outline"
+                onPress={() => handleSalePress(item.saleId)}
+                contentStyle={styles.saleButtonContent}
+                labelStyle={styles.saleButtonLabel}
+                textColor={colors.primary}
+                compact
+              >
+                View Sale
               </Button>
             }
           />
@@ -95,10 +117,19 @@ const styles = StyleSheet.create({
   },
   list: {
     flexGrow: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingBottom: 16,
+  },
+  row: {
+    paddingHorizontal: 4,
   },
   unsaveButton: {
     borderRadius: 5,
+  },
+  saleButtonContent: {
+    justifyContent: 'flex-start',
+  },
+  saleButtonLabel: {
+    marginLeft: 4,
   },
 });
