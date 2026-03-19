@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SearchBar } from '../../components';
@@ -16,8 +16,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const DEFAULT_CENTER: [number, number] = [39.8283, -98.5795];
-const DEFAULT_ZOOM = 5;
+const FALLBACK_CENTER: [number, number] = [39.8283, -98.5795];
+const FALLBACK_ZOOM = 4;
+
+function LocationUpdater({ latitude, longitude }: { latitude: number | null; longitude: number | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (latitude != null && longitude != null) {
+      map.setView([latitude, longitude], 12);
+    }
+  }, [map, latitude, longitude]);
+  return null;
+}
 
 type Props = NativeStackScreenProps<MapStackParamList, 'Map'>;
 
@@ -26,21 +36,18 @@ export function MapScreen({ navigation }: Props) {
   const { latitude, longitude, requestLocation } = useLocationStore();
 
   useEffect(() => {
-    if (latitude == null) {
-      requestLocation();
-    }
-  }, [latitude, requestLocation]);
+    requestLocation();
+  }, [requestLocation]);
 
-  const center = useMemo<[number, number]>(() => {
-    if (latitude != null && longitude != null) {
-      return [latitude, longitude];
-    }
-    return DEFAULT_CENTER;
-  }, [latitude, longitude]);
+  const center: [number, number] = latitude != null && longitude != null
+    ? [latitude, longitude]
+    : FALLBACK_CENTER;
 
-  const zoom = latitude != null ? 12 : DEFAULT_ZOOM;
+  const zoom = latitude != null ? 12 : FALLBACK_ZOOM;
 
-  const { data: sales } = useMapSales(latitude ?? undefined, longitude ?? undefined, 10);
+  const fetchLat = latitude ?? FALLBACK_CENTER[0];
+  const fetchLng = longitude ?? FALLBACK_CENTER[1];
+  const { data: sales } = useMapSales(fetchLat, fetchLng, 50);
 
   const filteredSales = useMemo(() => {
     if (!sales) return [];
@@ -68,6 +75,7 @@ export function MapScreen({ navigation }: Props) {
         zoom={zoom}
         style={{ flex: 1, width: '100%', height: '100%' }}
       >
+        <LocationUpdater latitude={latitude} longitude={longitude} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -107,6 +115,7 @@ export function MapScreen({ navigation }: Props) {
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
+                      console.log('[Map] Navigating to SaleDetail:', sale.id);
                       navigation.navigate('SaleDetail', { saleId: sale.id });
                     }}
                     style={{

@@ -83,11 +83,10 @@ api.interceptors.response.use(
     }
 
     const { useAuthStore } = require('../stores/useAuthStore');
-    const { refreshToken: storedRefreshToken, logout } = useAuthStore.getState();
+    const { refreshToken: storedRefreshToken } = useAuthStore.getState();
 
     if (!storedRefreshToken) {
       useAuthStore.getState().setShowAuthPrompt(true);
-      logout();
       return Promise.reject(error);
     }
 
@@ -112,7 +111,6 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       useAuthStore.getState().setShowAuthPrompt(true);
-      logout();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -203,7 +201,7 @@ export async function getSale(id: string): Promise<Sale> {
 }
 
 export async function getNearbySales(lat: number, lng: number, radiusKm: number): Promise<Sale[]> {
-  const { data } = await api.get<ApiResponse<Sale[]>>('/nearby_sales', {
+  const { data } = await api.get<ApiResponse<Sale[]>>('/explore', {
     params: { lat, lng, radiusKm },
   });
   return data.data ?? [];

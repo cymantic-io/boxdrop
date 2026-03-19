@@ -10,10 +10,10 @@ import { colors } from '../../theme';
 import type { MapStackParamList } from '../../types';
 
 const DEFAULT_REGION: Region = {
-  latitude: 39.8283,
-  longitude: -98.5795,
-  latitudeDelta: 10,
-  longitudeDelta: 10,
+  latitude: 37.55,
+  longitude: -90.29,
+  latitudeDelta: 0.5,
+  longitudeDelta: 0.5,
 };
 
 type Props = NativeStackScreenProps<MapStackParamList, 'Map'>;

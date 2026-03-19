@@ -6,7 +6,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.QueryValue
 
-@Controller("/api/nearby_sales")
+@Controller("/api/explore")
 class NearbySalesController(private val saleService: SaleService) {
 
     @Get

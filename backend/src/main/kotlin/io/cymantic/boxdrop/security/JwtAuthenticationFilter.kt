@@ -21,7 +21,7 @@ class JwtAuthenticationFilter(private val jwtService: JwtService) : HttpServerFi
         "/api/auth/login/verify",
         "/api/auth/refresh",
         "/api/webhooks/stripe",
-        "/api/sales/nearby"
+        "/api/explore"
     )
 
     override fun doFilter(request: HttpRequest<*>, chain: ServerFilterChain): Publisher<MutableHttpResponse<*>> {

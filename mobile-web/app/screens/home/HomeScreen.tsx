@@ -14,11 +14,16 @@ import { useLocationStore } from '../../stores/useLocationStore';
 import { colors } from '../../theme';
 import type { HomeStackParamList, Sale } from '../../types';
 
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line no-console
+  console.log('[Map] HomeScreen.native loaded on web');
+}
+
 const DEFAULT_REGION: Region = {
-  latitude: 39.8283,
-  longitude: -98.5795,
-  latitudeDelta: 10,
-  longitudeDelta: 10,
+  latitude: 37.55,
+  longitude: -90.29,
+  latitudeDelta: 0.5,
+  longitudeDelta: 0.5,
 };
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
@@ -28,6 +33,7 @@ export function HomeScreen({ navigation }: Props) {
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const { latitude, longitude, isLoading: locationLoading, requestLocation } = useLocationStore();
+  const [searchRegion, setSearchRegion] = useState<{ lat: number; lng: number; radiusKm: number } | null>(null);
   const flatListRef = useRef<FlatList<Sale>>(null);
   const mapRef = useRef<MapView>(null);
   const markerRefs = useRef<Record<string, any>>({});
@@ -38,12 +44,40 @@ export function HomeScreen({ navigation }: Props) {
     }
   }, [latitude, locationLoading, requestLocation]);
 
+  // When initial location is found, set the search region if not already set
+  useEffect(() => {
+    if (latitude != null && longitude != null && !searchRegion) {
+      setSearchRegion({ lat: latitude, lng: longitude, radiusKm: 10 });
+    }
+  }, [latitude, longitude, searchRegion]);
+
+  // When map panning completes, update the search region to fetch new sales
+  const handleRegionChangeComplete = useCallback((region: Region) => {
+    setMapRegion(region);
+    
+    // Approximate km per degree
+    const kmPerDegreeLat = 111;
+    const kmPerDegreeLng = 111 * Math.cos(region.latitude * Math.PI / 180);
+    
+    const latKm = (region.latitudeDelta / 2) * kmPerDegreeLat;
+    const lngKm = (region.longitudeDelta / 2) * kmPerDegreeLng;
+    
+    // Distance from center to corner
+    const radiusKm = Math.sqrt(latKm * latKm + lngKm * lngKm);
+    
+    setSearchRegion({
+      lat: region.latitude,
+      lng: region.longitude,
+      radiusKm: Math.max(radiusKm, 1), // At least 1km
+    });
+  }, []);
+
   const {
     data: nearbySales,
     isLoading,
     refetch,
     isRefetching,
-  } = useNearbySales(latitude ?? undefined, longitude ?? undefined, 10);
+  } = useNearbySales(searchRegion?.lat, searchRegion?.lng, searchRegion?.radiusKm ?? 10);
 
   const isSearching = searchText.trim().length > 0;
 
@@ -77,21 +111,16 @@ export function HomeScreen({ navigation }: Props) {
     );
   }, [searchFilteredSales, mapRegion, isSearching]);
 
-  useEffect(() => {
-    if (isSearching && searchFilteredSales.length > 0 && mapRef.current) {
-      mapRef.current.fitToCoordinates(
-        searchFilteredSales.map((s) => ({ latitude: s.latitude, longitude: s.longitude })),
-        { edgePadding: { top: 40, right: 40, bottom: 40, left: 40 }, animated: true },
-      );
-    }
-  }, [isSearching, searchFilteredSales]);
-
   const initialRegion = useMemo<Region>(() => {
     if (latitude != null && longitude != null) {
       return { latitude, longitude, latitudeDelta: 0.1, longitudeDelta: 0.1 };
     }
     return DEFAULT_REGION;
   }, [latitude, longitude]);
+
+  const mapKey = latitude != null && longitude != null
+    ? `map-${latitude.toFixed(4)}-${longitude.toFixed(4)}`
+    : 'map-fallback';
 
   const scrollToSale = useCallback(
     (saleId: string) => {
@@ -136,7 +165,13 @@ export function HomeScreen({ navigation }: Props) {
         testID="search-input"
       />
       <View style={styles.mapContainer}>
-        <MapView ref={mapRef} style={styles.map} initialRegion={initialRegion} onRegionChangeComplete={setMapRegion}>
+        <MapView
+          key={mapKey}
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={initialRegion}
+          onRegionChangeComplete={handleRegionChangeComplete}
+        >
           {searchFilteredSales.map((sale) => {
             const startsAt = new Date(sale.startsAt).toLocaleDateString();
             const endsAt = new Date(sale.endsAt).toLocaleDateString();

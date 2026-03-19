@@ -22,10 +22,10 @@ export function SaleDetailScreen({ route, navigation }: Props) {
   const { saleId } = route.params;
   const rootNavigation = useNavigation<any>();
   const userId = useAuthStore((s) => s.userId);
-  const { data: sale, isLoading: saleLoading } = useSale(saleId);
+  const { data: sale, isLoading: saleLoading, error: saleError } = useSale(saleId);
   const { data: listings, isLoading: listingsLoading } = useListings(saleId);
   const { mutate: activate, isPending: activating } = useActivateSale();
-  const { data: savedListings } = useSavedListings();
+  const { data: savedListings } = useSavedListings({ enabled: !!userId });
   const { mutate: save } = useSaveListing();
   const { mutate: unsave } = useUnsaveListing();
   const savedIds = new Set(savedListings?.map((item) => item.id));
@@ -38,7 +38,7 @@ export function SaleDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  if (!sale) {
+  if (saleError || !sale) {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Sale not found</Text>

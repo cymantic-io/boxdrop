@@ -43,6 +43,17 @@
 - [ ] **A09: Logging Failures** — Ensure security events are logged without sensitive data
 - [ ] **A10: SSRF** — Validate all URLs/URIs don't allow internal network access
 
+### Review Findings (2026-03-16)
+
+- [ ] Fix offers authorization: only buyer or seller on the offer thread can accept/reject/counter (`backend/src/main/kotlin/io/cymantic/boxdrop/offers/OfferService.kt:76`, `backend/src/main/kotlin/io/cymantic/boxdrop/offers/OfferService.kt:107`)
+- [ ] Enforce token type in auth filter so refresh tokens cannot access protected routes (`backend/src/main/kotlin/io/cymantic/boxdrop/auth/JwtService.kt:36`, `backend/src/main/kotlin/io/cymantic/boxdrop/security/JwtAuthenticationFilter.kt:31`)
+- [ ] Keep mocked payment flow, but guard `confirmPayment` to require a server-validated event (or a temporary mock flag) to prevent arbitrary “PAID” transitions (`backend/src/main/kotlin/io/cymantic/boxdrop/transactions/TransactionService.kt:74`)
+- [ ] Add seller self-purchase guard in `claimAtPrice`, matching `claim` behavior (`backend/src/main/kotlin/io/cymantic/boxdrop/transactions/TransactionService.kt:50`)
+- [ ] Rotate refresh tokens on the client by storing the new refresh token returned by `/auth/refresh` (`mobile-web/app/services/api.ts:106`)
+- [ ] Fix image upload response parsing: backend returns `{ data: { url } }` but client expects a string (`backend/src/main/kotlin/io/cymantic/boxdrop/images/ImageController.kt:61`, `mobile-web/app/services/api.ts:357`)
+- [ ] Prevent double-claim race by doing claim + status update transactionally or with conditional update (`backend/src/main/kotlin/io/cymantic/boxdrop/transactions/TransactionService.kt:30`)
+- [ ] Return sale `address` in responses (visible to all users for now) to match UI usage (`backend/src/main/kotlin/io/cymantic/boxdrop/sales/SaleService.kt:100`)
+
 ### Server Resilience
 
 - [ ] Add server-side rate limiting (Redis-backed, per-IP and per-user)
