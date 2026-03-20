@@ -78,6 +78,7 @@ boxdrop/
 ├── deploy/
 │   └── nginx/nginx.conf      # Reverse proxy config
 ├── scripts/
+│   ├── refresh_seed_data.sh  # Upload seed images to MinIO, reset DB, reseed
 │   └── seed_test_sales.sql   # Test data seed script
 ├── docker-compose.yml        # Local infra (Postgres, Redis, MinIO)
 ├── build.sh                  # Full build + test pipeline
@@ -131,10 +132,16 @@ cd tests/load && k6 run api_load_test.js
 ## Seed Test Data
 
 ```bash
-docker exec -i boxdrop-db-1 psql -U postgres -d boxdrop < scripts/seed_test_sales.sql
+./scripts/refresh_seed_data.sh
 ```
 
-Creates 5 test sellers, 5 active sales near Fredericktown MO, and 13 listings. Test user password: `password123`.
+Uploads the checked-in seed images to local MinIO, resets the local database, and reseeds it with 5 sellers, 3 buyers, 5 active sales near Fredericktown MO, and 13 listings. Test user password: `password123`.
+
+If you only need to apply the seed SQL without a reset, run:
+
+```bash
+docker exec -i boxdrop-db-1 psql -U postgres -d boxdrop < scripts/seed_test_sales.sql
+```
 
 ## Docker Compose Services
 

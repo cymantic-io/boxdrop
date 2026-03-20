@@ -37,7 +37,8 @@ boxdrop/
 │   └── load/                # k6 load tests
 ├── docs/
 │   ├── DESIGN.md            # Full API design reference
-│   └── TODO.md              # Launch checklist
+│   ├── TODO.md              # Launch checklist
+│   └── SECRETS.md           # Secrets and runtime config plan
 ├── AGENTS.md                # Developer guide (comprehensive)
 ├── VS_CODE_SETUP.md         # IDE setup guide
 └── MOBILE_CLIENTS.md        # iOS/Android testing guide
@@ -62,10 +63,16 @@ cd tests/e2e && npx playwright test
 ## Seed Test Data
 
 ```bash
-docker exec -i boxdrop-db-1 psql -U postgres -d boxdrop < scripts/seed_test_sales.sql
+./scripts/refresh_seed_data.sh
 ```
 
-Creates 5 test sellers with sales and listings near Fredericktown, MO. Test user password: `password123`.
+Uploads the checked-in seed images to local MinIO, resets the local database, and reseeds it with 5 sellers, 3 buyers, 5 sales, 13 listings, and local image URLs. Test user password: `password123`.
+
+For a seed-only run without resetting the database, use:
+
+```bash
+docker exec -i boxdrop-db-1 psql -U postgres -d boxdrop < scripts/seed_test_sales.sql
+```
 
 ## Documentation
 
@@ -74,6 +81,7 @@ Creates 5 test sellers with sales and listings near Fredericktown, MO. Test user
 | [AGENTS.md](AGENTS.md) | Comprehensive developer guide |
 | [docs/DESIGN.md](docs/DESIGN.md) | Full API design reference |
 | [docs/TODO.md](docs/TODO.md) | Launch checklist |
+| [docs/SECRETS.md](docs/SECRETS.md) | Secrets and runtime config plan |
 | [VS_CODE_SETUP.md](VS_CODE_SETUP.md) | IDE configuration |
 | [MOBILE_CLIENTS.md](MOBILE_CLIENTS.md) | iOS/Android testing |
 

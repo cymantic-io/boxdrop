@@ -126,6 +126,16 @@ docker-compose up backend
 
 Includes PostgreSQL and Redis services.
 
+## Local Seed Refresh
+
+From the repo root, refresh local fixture data with:
+
+```bash
+./scripts/refresh_seed_data.sh
+```
+
+This uploads the checked-in seed images to local MinIO, resets Postgres, and reseeds the local database with test users, sales, listings, and listing images.
+
 ## Testing
 
 ```bash
