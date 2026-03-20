@@ -1,0 +1,106 @@
+[
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000001",
+    "listingTitle": "IKEA Kallax Shelf",
+    "seedKey": "seed/listings/ikea-kallax-shelf.jpg",
+    "localFilename": "ikea-kallax-shelf.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Billy_Bookcase.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Billy_Bookcase.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000002",
+    "listingTitle": "Box of Paperback Novels",
+    "seedKey": "seed/listings/box-of-paperback-novels.jpg",
+    "localFilename": "box-of-paperback-novels.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Stack_of_Books.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stack_of_Books.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000003",
+    "listingTitle": "KitchenAid Stand Mixer",
+    "seedKey": "seed/listings/kitchenaid-stand-mixer.jpg",
+    "localFilename": "kitchenaid-stand-mixer.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Red_KitchenAid_Artisan.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Red_KitchenAid_Artisan.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000004",
+    "listingTitle": "Kids' Bicycle (16\")",
+    "seedKey": "seed/listings/kids-bicycle.jpg",
+    "localFilename": "kids-bicycle.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Boy_with_helmet_on_training_wheels.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Boy_with_helmet_on_training_wheels.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000005",
+    "listingTitle": "Nintendo Switch Bundle",
+    "seedKey": "seed/listings/nintendo-switch-bundle.jpg",
+    "localFilename": "nintendo-switch-bundle.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Nintendo_switch.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Nintendo_switch.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000006",
+    "listingTitle": "Mid-Century Coffee Table",
+    "seedKey": "seed/listings/mid-century-coffee-table.jpg",
+    "localFilename": "mid-century-coffee-table.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Coffee_table1.jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffee_table1.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000007",
+    "listingTitle": "Vinyl Record Collection",
+    "seedKey": "seed/listings/vinyl-record-collection.jpg",
+    "localFilename": "vinyl-record-collection.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Vinyl_records_on_display_(Unsplash).jpg",
+    "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Vinyl_records_on_display_(Unsplash).jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000008",
+    "listingTitle": "Ceramic Vase Set",
+    "seedKey": "seed/listings/ceramic-vase-set.jpg",
+    "localFilename": "ceramic-vase-set.jpg",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Ceramic_Vase_(15428781445).jpg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Ceramic_Vase_%2815428781445%29.jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000009",
+    "listingTitle": "Craftsman Tool Chest",
+    "seedKey": "seed/listings/craftsman-tool-chest.webp",
+    "localFilename": "craftsman-tool-chest.webp",
+    "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Tool_chest.webp",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Tool_chest.webp"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000010",
+    "listingTitle": "John Deere Push Mower",
+    "seedKey": "seed/listings/john-deere-push-mower.jpg",
+    "localFilename": "john-deere-push-mower.jpg",
+    "sourcePageUrl": "https://www.pexels.com/photo/a-person-cutting-grass-with-a-lawn-mower-6728925/",
+    "downloadUrl": "https://images.pexels.com/photos/6728925/pexels-photo-6728925.jpeg?cs=srgb&dl=pexels-magic-k-24827758-6728925.jpg&fm=jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000011",
+    "listingTitle": "UPPAbaby Vista Stroller",
+    "seedKey": "seed/listings/uppababy-vista-stroller.jpg",
+    "localFilename": "uppababy-vista-stroller.jpg",
+    "sourcePageUrl": "https://www.pexels.com/photo/a-baby-in-a-stroller-25797471/",
+    "downloadUrl": "https://images.pexels.com/photos/25797471/pexels-photo-25797471.jpeg?cs=srgb&dl=pexels-bymuratisikofficial-25797471.jpg&fm=jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000012",
+    "listingTitle": "Handmade Quilt (Queen)",
+    "seedKey": "seed/listings/handmade-quilt-queen.jpg",
+    "localFilename": "handmade-quilt-queen.jpg",
+    "sourcePageUrl": "https://www.pexels.com/photo/patchwork-quilt-on-bed-8266835/",
+    "downloadUrl": "https://images.pexels.com/photos/8266835/pexels-photo-8266835.jpeg?cs=srgb&dl=pexels-introspectivedsgn-8266835.jpg&fm=jpg"
+  },
+  {
+    "listingId": "c0000001-0000-0000-0000-000000000013",
+    "listingTitle": "Cast Iron Skillet Set",
+    "seedKey": "seed/listings/cast-iron-skillet-set.jpg",
+    "localFilename": "cast-iron-skillet-set.jpg",
+    "sourcePageUrl": "https://www.pexels.com/photo/cast-iron-skillet-on-table-with-species-1435909/",
+    "downloadUrl": "https://images.pexels.com/photos/1435909/pexels-photo-1435909.jpeg?cs=srgb&dl=pexels-enginakyurt-1435909.jpg&fm=jpg"
+  }
+]

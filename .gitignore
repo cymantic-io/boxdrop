@@ -27,6 +27,7 @@ mobile-web/web-build/
 .env
 .env.local
 .env.*.local
+.venv-seed/
 
 # Test
 test-results/
